@@ -58,6 +58,7 @@ def scan_dzn(file_path):
     rows_str = 'num_rows' # > num_rows = 16; %% height
     cols_str = 'num_cols' # > num_cols = 24; %% width
     ctrs_str = 'control_names'
+    nb_ctrs_str = 'num_controls'
     
     file = open(file_path, 'r')
     dzn_text = file.read()
@@ -68,6 +69,11 @@ def scan_dzn(file_path):
     rows = retrieve_dzn_param(dzn_text,rows_str)
     cols = retrieve_dzn_param(dzn_text,cols_str)
     ctrs = retrieve_dzn_param(dzn_text,ctrs_str)
+    nb_ctrs = retrieve_dzn_param(dzn_text,nb_ctrs_str)
+    
+    print(ctrs)
+    ctrs = ctrs.replace(nb_ctrs_str,nb_ctrs)
+    print(ctrs,' -> ',parse_control_string(ctrs))
     
     if rows.isnumeric() & cols.isnumeric():
         return cols, rows, str(parse_control_string(ctrs))
