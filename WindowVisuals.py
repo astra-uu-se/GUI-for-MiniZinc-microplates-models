@@ -30,7 +30,7 @@ from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,NavigationToolb
 import numpy as np
 
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, VERTICAL, RIGHT, Y, LEFT, BOTH
 
 import ast
 
@@ -74,17 +74,32 @@ def draw_plates(parent, figure_name_template, text_array, m = 16, n = 24, contro
         draw_plate(tab_control,figure_name_template,layout,layouts_dict[layout],material_colors,concentrations_list,m,n,control_names)
     tab_control.grid(row = 1, column = 0, padx = 10, pady = 2)
     
+    tab_control2 = ttk.Frame(parent, width = 400)
+    canvas_right = tk.Canvas(tab_control2, width = 400, height = 600)
+    canvas_right.pack(side="left", fill="both", expand=True)
     
-    tab_control2 = ttk.Notebook(parent, width = 200)
+    scrollbar = ttk.Scrollbar(tab_control2, orient="vertical", command=canvas_right.yview)
+    scrollbar.pack(side="right", fill="y")
+    
+    canvas_right.configure(yscrollcommand=scrollbar.set)
+    scrollable_frame = ttk.Frame(canvas_right)
+    
+    scrollable_frame.bind("<Configure>", lambda event: update_scroll_region(event, canvas_right))
+    
     i = 0
     for material in material_colors:
         i += 1
-        if i >= 6:
-            break
         material_color = material_colors[material]
         concentration_material = concentrations_list[material]
-        draw_material_scale(tab_control2, material, material_color, concentration_material)
+        draw_material_scale(scrollable_frame, material, material_color, concentration_material)
+    
+    canvas_right.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    
     tab_control2.grid(row = 1, column = 1, padx = 10, pady = 2)
+
+def update_scroll_region(event, canvas):
+    canvas.configure(scrollregion=canvas.bbox("all"))
+
  
 # draws a microplate layout
 # note that if concentrations_list is not empty, then the wells containing a material with a name from a list, will be depicted as a circle
@@ -168,13 +183,12 @@ def draw_material_scale(parent, material_name, color, concentrations):
     pyplot.yticks([]) # Hide y-axis ticks as it's a 1D spectrum
     
     pyplot.axis('tight')
-    #pyplot.show()
     
     tab2 = ttk.Frame(parent)
     canvas = FigureCanvasTkAgg(fig1, master = tab2)
     canvas.draw()
     canvas.get_tk_widget().pack(padx = 2, pady = 2)
-    parent.add(tab2, text = material_name)
+    tab2.pack(fill="both", expand=True)
     
 # main window of a visuzliation.
 def visualize(file_path, figure_name_template, rows, cols, control_names = '[]'):
@@ -184,6 +198,7 @@ def visualize(file_path, figure_name_template, rows, cols, control_names = '[]')
     quit_button.configure(  command = lambda: [pyplot.close('all'), window.destroy()])
     window.title("Visualize GUI")
     window.overrideredirect(True) # disable your window to be closed by regular means
+    
     try:
         draw_plates(window, figure_name_template, read_csv_file(file_path), m = int(rows), n = int(cols),
                     control_names = ast.literal_eval(control_names))

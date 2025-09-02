@@ -187,10 +187,10 @@ label_csv_loaded = tk.Label(frame_csv,  text = 'No *.csv file is loaded')
 radio_plaid = ttk.Radiobutton(frame_csv, text = 'PLAID', value='PLAID', variable=use_compd_flag)
 radio_compd = ttk.Radiobutton(frame_csv, text = 'COMPD', value='COMPD', variable=use_compd_flag)
 
-radio_plaid.grid(row=0,column=0,columnspan=1,sticky="w")
-radio_compd.grid(row=0,column=1,columnspan=4,sticky="e")
-button_run_mzn.grid(row=1,column=1,columnspan=1,sticky="w")
-button_load_csv.grid(row=1,column=2,columnspan=1,sticky="e")
+radio_plaid.grid(row=0,column=0,columnspan=2,sticky="w")
+radio_compd.grid(row=0,column=2,columnspan=2,sticky="e")
+button_run_mzn.grid(row=1,column=0,columnspan=2,sticky="w")
+button_load_csv.grid(row=1,column=2,columnspan=2,sticky="e")
 label_csv_loaded.grid(row=2,column=0,columnspan=4,sticky="w")
 
 # frame 3:
@@ -210,7 +210,7 @@ entry_rows.grid(row=0,column=1,columnspan=1,sticky="w")
 label_cols.grid(row=0,column=2,columnspan=1,sticky="w")
 entry_cols.grid(row=0,column=3,columnspan=1,sticky="w")
 button_visualize.grid(row=1,column=0,columnspan=2,sticky="w")
-button_reset_all.grid(row=1,column=3,columnspan=2,sticky="e")
+button_reset_all.grid(row=1,column=2,columnspan=2,sticky="e")
 
 # assign button commands
 button_gen_dzn.configure(  command = lambda: gen_dzn())
