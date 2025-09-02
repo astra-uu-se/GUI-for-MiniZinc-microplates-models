@@ -28,7 +28,7 @@ A functionality for the future:
 
 Limitations:
   - for simplicity of development, it is not possible to select custom names and locations for saved `*.csv` and `*.png`. We use the name and location of the `*.dzn` file
-  - currently the project uses the `tab20` colormap, i.e. 20 distinct colors, meaning that the project repeats same colors for several materials in case if the number of materials is larger than 20
+  - the project currently uses the `tab20` colormap, i.e. 20 distinct colors, meaning that the project repeats the same colors when the number of materials is larger than 20
   - the visualization supports showing color gradients for a small number of materials
 
 
