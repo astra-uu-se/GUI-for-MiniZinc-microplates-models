@@ -37,7 +37,7 @@ Limitations:
   2. Download [PLAID](https://github.com/pharmbio/plaid) and/or COMPD model files (`*.mzn`) and copy them to a desired location. The link to COMPD will be available at a later date
   3. Install [MiniZinc](https://www.minizinc.org/)
   4. Configure paths to MiniZinc, PLAID and/or COMPD model files in the `paths.ini` file
-  5. (optional) Update solver configuration files for PLAID and/or COMPD (`plaid_default.mpc` and `compd_default.mpc`, respectively) if you want to switch a solver or change the number of threads used by the solver. Note that PLAID can only work with GeCode
+  5. (optional) Update solver configuration files for PLAID and/or COMPD (by default, `plaid_default.mpc` and `compd_default.mpc`, respectively) if you want to switch a solver or change the number of threads used by the solver. You can create additional solver configuration files as well (e.g. if you want to try different settings). Note that PLAID can only work with GeCode.
   6. Launch `main.py` (e.g. by using the command `python3 main.py`)
 
 ## Credits
