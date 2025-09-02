@@ -44,4 +44,4 @@ Limitations:
 The project is developed by [Ramiz Gindullin](https://orcid.org/0000-0003-4947-9641)
 
 ## License
-COMPD has an Apache 2.0 LICENSE. The COMPD team accepts no responsibility or liability for the use of COMPD or any direct or indirect damages arising out of its use.
+The project has an Apache 2.0 LICENSE. The author accepts no responsibility or liability for the use of the project or any direct or indirect damages arising out of its use.
