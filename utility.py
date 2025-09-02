@@ -109,11 +109,14 @@ def transform_concentrations_to_alphas(concentration_list):
     return alphas
 
 # self-explanatory
-def to_int_if_possible(value):
+def to_numerical_if_possible(value):
     try:
         return int(value)
     except:
-        return value
+        try:
+            return float(value)
+        except:
+            return value
 
 # extract relevant information from the ini file
 def read_paths_ini_file():
