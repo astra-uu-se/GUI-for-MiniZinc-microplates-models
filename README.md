@@ -39,8 +39,10 @@ Limitations:
   3. Install [MiniZinc](https://www.minizinc.org/)
   4. Configure paths to MiniZinc, PLAID and/or COMPD model files in the `paths.ini` file
   5. (optional) Update solver configuration files for PLAID and/or COMPD (by default, `plaid_default.mpc` and `compd_default.mpc`, respectively) if you want to switch a solver or change the number of threads used by the solver. You can create additional solver configuration files as well (e.g. if you want to try different settings). Additional notes:
-    - PLAID can only work with GeCode
-    - COMPD layout quality depends on the timeout, i.e. if you are unsatisfied with a solution, you can try to increase the timeout from 180s to e.g. 300s
+     
+       - PLAID can only work with GeCode
+       - COMPD layout quality depends on the timeout, i.e. if you are unsatisfied with a solution, you can try to increase the timeout from 180s to e.g. 300s
+         
   7. Launch `main.py` (e.g. by using the command `python3 main.py`)
 
 ## Credits
