@@ -151,6 +151,7 @@ def draw_plate(parent,figure_name_template,layout,layout_array, material_colors,
         pyplot.scatter(x_coords, y_coords, marker=marker, c = material_colors[material], s = 80, edgecolor='black', alpha=alphas)
     
     pyplot.savefig(figure_name_template + layout + '.png')
+    pyplot.close()
     
     tab = ttk.Frame(parent)
     canvas = FigureCanvasTkAgg(fig1, master = tab)
@@ -189,6 +190,7 @@ def draw_material_scale(parent, material_name, color, concentrations):
     canvas.draw()
     canvas.get_tk_widget().pack(padx = 2, pady = 2)
     tab2.pack(fill="both", expand=True)
+    pyplot.close()
     
 # main window of a visuzliation.
 def visualize(file_path, figure_name_template, rows, cols, control_names = '[]'):
