@@ -1,0 +1,9 @@
+{
+    "-O": 1,
+    "free-search": true,
+    "intermediate-solutions": true,
+    "output-objective": true,
+    "parallel": 8,
+    "solver": "cp-sat",
+	"time-limit": 180000
+}

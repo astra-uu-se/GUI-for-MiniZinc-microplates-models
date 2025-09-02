@@ -1,0 +1,188 @@
+% Copyright 2025 Ramiz Gindullin.
+%
+% Licensed under the Apache License, Version 2.0 (the "License");
+% you may not use this file except in compliance with the License.
+% You may obtain a copy of the License at
+%
+%     http://www.apache.org/licenses/LICENSE-2.0
+%
+% Unless required by applicable law or agreed to in writing, software
+% distributed under the License is distributed on an "AS IS" BASIS,
+% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+% See the License for the specific language governing permissions and
+% limitations under the License.
+%
+%
+% Description:  Visualizing the layout
+%
+% Authors: Ramiz GINDULLIN (ramiz.gindullin@it.uu.se)
+% Version: 1.0
+% Last Revision: September 2025
+%
+
+
+
+import matplotlib as mpl
+from matplotlib import pyplot
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,NavigationToolbar2Tk)
+
+import numpy as np
+
+import tkinter as tk
+from tkinter import ttk
+
+import ast
+
+from utility import transform_coordinate, read_csv_file, transform_concentrations_to_alphas, to_int_if_possible
+
+
+def draw_plates(parent, figure_name_template, text_array, m = 16, n = 24, control_names = []):
+    layouts_dict = {}
+    concentrations_list = {}
+    for line in text_array:
+        array = line.strip().split(',')
+        if array[0] in layouts_dict:
+            layouts_dict[array[0]].append(array[1:])
+        else:
+            layouts_dict[array[0]] = [array[1:]]
+
+        if array[2] in concentrations_list:
+            if to_int_if_possible(array[3]) not in concentrations_list[array[2]]:
+                concentrations_list[array[2]].append(to_int_if_possible(array[3]))
+            else:
+                None
+        else:
+            concentrations_list[array[2]] = [to_int_if_possible(array[3])]
+    for material in concentrations_list:
+        concentrations_list[material] = sorted(concentrations_list[material])
+
+    #prng = np.random.RandomState(100)
+    colormap = pyplot.get_cmap('tab20')
+    color = 0
+    material_colors = {}
+    for material in sorted(concentrations_list.keys()):
+        material_colors[material] = np.array(colormap(color)[:3])
+        color += 1
+        if color >= 20:
+            color = 0
+    
+    tab_control = ttk.Notebook(parent)
+    for layout in layouts_dict:
+        draw_plate(tab_control,figure_name_template,layout,layouts_dict[layout],material_colors,concentrations_list,m,n,control_names)
+    tab_control.grid(row = 1, column = 0, padx = 10, pady = 2)
+    
+    
+    tab_control2 = ttk.Notebook(parent, width = 200)
+    i = 0
+    for material in material_colors:
+        i += 1
+        if i >= 6:
+            break
+        material_color = material_colors[material]
+        concentration_material = concentrations_list[material]
+        draw_material_scale(tab_control2, material, material_color, concentration_material)
+    tab_control2.grid(row = 1, column = 1, padx = 10, pady = 2)
+ 
+
+def draw_plate(parent,figure_name_template,layout,layout_array, material_colors, concentrations_list,
+               m = 16, n = 24, control_names = []):
+    fig1 = pyplot.figure()
+    
+    if n > m:
+        m,n = n,m
+        is_switch = True
+    else:
+        is_switch = False
+    pyplot.xlim(0, m)
+    pyplot.ylim(0, n)
+
+    pyplot.grid(True)
+    pyplot.xticks(np.arange(0, m, 1))
+    pyplot.yticks(np.arange(0, n, 1))
+    pyplot.axis('scaled')
+
+    materials = {}
+    # line = ['D03', 'ctrl1', '1', 'ctrl1_1'], e.g.
+    for line in layout_array:
+        if line[1] in materials:
+            materials[line[1]].append([line[0]] + line[1:])
+        else:
+            materials[line[1]] = [[line[0]] + line[1:]]
+
+    for material in materials:
+        if material in control_names:
+            marker = 'o'
+        else:
+            marker = 's'
+
+        alpha_values = transform_concentrations_to_alphas(concentrations_list[material])
+
+        x_coords = []
+        y_coords = []
+        alphas = []
+        for well in materials[material]:
+            if is_switch:
+                [y, x] = transform_coordinate(well[0])
+            else:
+                [x, y] = transform_coordinate(well[0])
+            x_coords.append(x+0.5)
+            y_coords.append(y+0.5)
+            alphas.append(alpha_values[to_int_if_possible(well[2])])
+        pyplot.scatter(x_coords, y_coords, marker=marker, c = material_colors[material], s = 80, edgecolor='black', alpha=alphas)
+    
+    pyplot.savefig(figure_name_template + layout + '.png')
+    
+    tab = ttk.Frame(parent)
+    canvas = FigureCanvasTkAgg(fig1, master = tab)
+    canvas.draw()
+    canvas.get_tk_widget().pack()
+    parent.add(tab, text = layout)
+    
+        
+
+def draw_material_scale(parent, material_name, color, concentrations):
+    # Create alpha values from 0.3 to 1
+    alphas_dict =  transform_concentrations_to_alphas(concentrations)
+
+    alphas = [alphas_dict[x] for x in alphas_dict]
+
+    rgba_colors = np.zeros((1, len(concentrations), 4))
+    rgba_colors[:, :, 0] = color[0]
+    rgba_colors[:, :, 1] = color[1]
+    rgba_colors[:, :, 2] = color[2]
+    rgba_colors[:, :, 3] = alphas # Set alpha for the alpha channel
+
+    fig1 = pyplot.figure(figsize=(4, 2))
+    pyplot.imshow(rgba_colors, extent=[0, len(concentrations), 0, 1])
+
+    pyplot.title(material_name)
+    pyplot.xlabel('Concentrations')
+    x_ticks = np.linspace(1, len(concentrations), len(concentrations))
+    x_labels = [str(i) for i in alphas_dict]
+    pyplot.xticks(x_ticks, x_labels)
+    pyplot.yticks([]) # Hide y-axis ticks as it's a 1D spectrum
+    
+    pyplot.axis('tight')
+    #pyplot.show()
+    
+    tab2 = ttk.Frame(parent)
+    canvas = FigureCanvasTkAgg(fig1, master = tab2)
+    canvas.draw()
+    canvas.get_tk_widget().pack(padx = 2, pady = 2)
+    parent.add(tab2, text = material_name)
+    
+
+def visualize(file_path, figure_name_template, rows, cols, control_names = '[]'):
+    window = tk.Tk()
+    quit_button = ttk.Button(window, text = 'close window')
+    quit_button.grid(row = 0, column = 0, columnspan = 2)
+    quit_button.configure(  command = lambda: [pyplot.close('all'), window.destroy()])
+    window.title("Visualize GUI")
+    window.overrideredirect(True)
+    try:
+        draw_plates(window, figure_name_template, read_csv_file(file_path), m = int(rows), n = int(cols), control_names = ast.literal_eval(control_names))
+        window.geometry('+%d+%d'%(10,10))
+    except:
+        print(read_csv_file(file_path))
+        window.destroy()
