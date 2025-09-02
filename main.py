@@ -17,7 +17,7 @@
 %
 % Authors: Ramiz GINDULLIN (ramiz.gindullin@it.uu.se)
 % Version: 1.0
-% Last Revision: January 2025
+% Last Revision: September 2025
 %
 
 
@@ -41,14 +41,17 @@ def reset_all():
     num_rows.set('16')
     num_cols.set('24')
     control_names.set("[]")
+    use_compd_flag.set('COMPD')
     label_dzn_loaded.config(text = 'No *.dzn file is loaded')
     label_csv_loaded.config(text = 'No *.csv file is loaded')
     button_run_mzn.config(state = tk.DISABLED)
 
+# TBD
 def gen_dzn():
     None
     #button_run_mzn.config(state = tk.NORMAL)
 
+# select the dzn-file, extract the relevant information, display it to the user
 def load_dzn():
     path = tk.filedialog.askopenfilename(
         title = 'open dzn file',
@@ -69,6 +72,7 @@ def load_dzn():
     
         button_run_mzn.config(state = tk.NORMAL)
 
+# select the csv-file, extract the relevant information, display it to the user
 def load_csv():
     path = tk.filedialog.askopenfilename(
         title = 'open csv file',
@@ -76,7 +80,8 @@ def load_csv():
     )
     if path != '':
         update_csv_path(path)
-        
+
+# we name the csv-file based on the name of the dzn-file
 def update_csv_path(path):
     if len(path) >= 20:
         prefix = '...'
@@ -84,7 +89,8 @@ def update_csv_path(path):
         prefix = ''
     label_csv_loaded.config(text = prefix + path[-20:])
     csv_file_path.set(path)
-    
+
+# launch MiniZinc model, write the results in the csv-file
 def run_minizinc():
     if use_compd_flag.get() == 'COMPD':
         solver_config = compd_mpc_path.get()

@@ -31,6 +31,7 @@ import numpy as np
 letters_capital = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 letters_inline  = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
 
+# transform coordinates from a standard csv-file. i.e. `A1` will become (1,1) coordinate
 def transform_coordinate(well):
     row = 0
     for i in range(len(well)):
@@ -43,6 +44,7 @@ def transform_coordinate(well):
             col = int(well[i:]) - 1
             return [row, col]
 
+# load the csv file as a list of lines (except header)
 def read_csv_file(file_path):
     file = open(file_path, 'r')
     layout_text_array = file.readlines()
@@ -51,6 +53,7 @@ def read_csv_file(file_path):
     file.close()
     return layout_text_array
 
+# scan the dzn file and extract the number of rows, columns and the list of control names
 def scan_dzn(file_path):
     rows_str = 'num_rows' # > num_rows = 16; %% height
     cols_str = 'num_cols' # > num_cols = 24; %% width
@@ -60,7 +63,7 @@ def scan_dzn(file_path):
     dzn_text = file.read()
     file.close()
     
-    dzn_text = re.sub(r"[\n\t\s]*", "", dzn_text)
+    dzn_text = re.sub(r"[\n\t\s]*", "", dzn_text) # remove spaces, tabs and newlines to ensure a more robust scan
     
     rows = retrieve_dzn_param(dzn_text,rows_str)
     cols = retrieve_dzn_param(dzn_text,cols_str)
@@ -72,7 +75,7 @@ def scan_dzn(file_path):
         print(text)
         raise Exception('Corrupt dzn file')
     
-
+# a helper function that scans the dzn file for a specific parameter
 def retrieve_dzn_param(text,param_string):
     param_string += '='
     pos = text.find(param_string)
@@ -86,7 +89,9 @@ def retrieve_dzn_param(text,param_string):
     
     return param_res
 
-
+# if we have 1  concentration then there is only one alpha-channel value: [1]
+# if we have 2  concentration then there are 2: [0.3, 1]
+# if we have 3+ concentration then there we get a list: [0.3, ..., 1] with eaually spaced values
 def transform_concentrations_to_alphas(concentration_list):
     min_alpha = 0.3
     max_alpha = 1
@@ -98,12 +103,14 @@ def transform_concentrations_to_alphas(concentration_list):
         alphas[concentration_list[i]] = min([1,min_alpha + (max_alpha - min_alpha) * i / (num_alpha - 1)])
     return alphas
 
+# self-explanatory
 def to_int_if_possible(value):
     try:
         return int(value)
     except:
         return value
-    
+
+# extract relevant information from the ini file
 def read_paths_ini_file():
     file = open('paths.ini','r')
     paths_array = file.readlines()
@@ -122,17 +129,17 @@ def read_paths_ini_file():
     file.close()
     return minizinc_path, plaid_path, compd_path, plaid_mpc_path, compd_mpc_path
 
-
+# launch minizinc and solve the problem instance
 def run_cmd(minizinc_path, solver_config, model_file, data_file):
     cmd = minizinc_path + ' --param-file-no-push ' + solver_config + ' ' + model_file  + ' ' + data_file
     process = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    print(cmd)
     #retval = process.wait()
     output, _ = process.communicate()
     output = output.decode('utf-8').strip()
     process.kill()
     return output
 
+# extract the layout from the Minizinc output
 def extract_csv_text(text):
     s, e = 0, 0
     lines = text.split('\n')

@@ -37,6 +37,8 @@ import ast
 from utility import transform_coordinate, read_csv_file, transform_concentrations_to_alphas, to_int_if_possible
 
 
+# main function that loads the csv file, analyzes it, splits it into separate layouts and passes it to draw_plates(**kwargs),
+# and, lastly, draws first 5 material concentration scales
 def draw_plates(parent, figure_name_template, text_array, m = 16, n = 24, control_names = []):
     layouts_dict = {}
     concentrations_list = {}
@@ -84,7 +86,9 @@ def draw_plates(parent, figure_name_template, text_array, m = 16, n = 24, contro
         draw_material_scale(tab_control2, material, material_color, concentration_material)
     tab_control2.grid(row = 1, column = 1, padx = 10, pady = 2)
  
-
+# draws a microplate layout
+# note that if concentrations_list is not empty, then the wells containing a material with a name from a list, will be depicted as a circle
+# otherwise a material will be depicted as a square
 def draw_plate(parent,figure_name_template,layout,layout_array, material_colors, concentrations_list,
                m = 16, n = 24, control_names = []):
     fig1 = pyplot.figure()
@@ -140,7 +144,7 @@ def draw_plate(parent,figure_name_template,layout,layout_array, material_colors,
     parent.add(tab, text = layout)
     
         
-
+# draw a scale representing different concentration of a material
 def draw_material_scale(parent, material_name, color, concentrations):
     # Create alpha values from 0.3 to 1
     alphas_dict =  transform_concentrations_to_alphas(concentrations)
@@ -172,17 +176,19 @@ def draw_material_scale(parent, material_name, color, concentrations):
     canvas.get_tk_widget().pack(padx = 2, pady = 2)
     parent.add(tab2, text = material_name)
     
-
+# main window of a visuzliation.
 def visualize(file_path, figure_name_template, rows, cols, control_names = '[]'):
     window = tk.Tk()
     quit_button = ttk.Button(window, text = 'close window')
     quit_button.grid(row = 0, column = 0, columnspan = 2)
     quit_button.configure(  command = lambda: [pyplot.close('all'), window.destroy()])
     window.title("Visualize GUI")
-    window.overrideredirect(True)
+    window.overrideredirect(True) # disable your window to be closed by regular means
     try:
-        draw_plates(window, figure_name_template, read_csv_file(file_path), m = int(rows), n = int(cols), control_names = ast.literal_eval(control_names))
+        draw_plates(window, figure_name_template, read_csv_file(file_path), m = int(rows), n = int(cols),
+                    control_names = ast.literal_eval(control_names))
         window.geometry('+%d+%d'%(10,10))
     except:
+        # if error, write down the csv file to help the troubleshooting
         print(read_csv_file(file_path))
         window.destroy()
