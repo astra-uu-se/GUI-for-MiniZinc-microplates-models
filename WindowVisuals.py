@@ -25,7 +25,7 @@
 import matplotlib as mpl
 from matplotlib import pyplot
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,NavigationToolbar2Tk)
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 import numpy as np
 
@@ -75,7 +75,7 @@ def draw_plates(parent, figure_name_template, text_array, m = 16, n = 24, contro
     tab_control.grid(row = 1, column = 0, padx = 10, pady = 2)
     
     tab_control2 = ttk.Frame(parent, width = 400)
-    canvas_right = tk.Canvas(tab_control2, width = 400, height = 600)
+    canvas_right = tk.Canvas(tab_control2, width = 400, height = 500)
     canvas_right.pack(side="left", fill="both", expand=True)
     
     scrollbar = ttk.Scrollbar(tab_control2, orient="vertical", command=canvas_right.yview)
@@ -174,22 +174,21 @@ def draw_material_scale(parent, material_name, color, concentrations):
     rgba_colors[:, :, 3] = alphas # Set alpha for the alpha channel
 
     fig1 = pyplot.figure(figsize=(4, 2))
-    pyplot.imshow(rgba_colors, extent=[0, len(concentrations), 0, 1])
+    pyplot.imshow(rgba_colors, extent=[0, len(concentrations), 0, 1], aspect = 'auto')
 
     pyplot.title(material_name)
-    pyplot.xlabel('Concentrations')
     x_ticks = np.linspace(1, len(concentrations), len(concentrations))
     x_labels = [str(i) for i in alphas_dict]
     pyplot.xticks(x_ticks, x_labels)
     pyplot.yticks([]) # Hide y-axis ticks as it's a 1D spectrum
     
-    pyplot.axis('tight')
+    #pyplot.axis('tight')
     
     tab2 = ttk.Frame(parent)
     canvas = FigureCanvasTkAgg(fig1, master = tab2)
     canvas.draw()
-    canvas.get_tk_widget().pack(padx = 2, pady = 2)
-    tab2.pack(fill="both", expand=True)
+    canvas.get_tk_widget().pack()
+    tab2.pack(fill="both", expand=True, padx = 1, pady = 5)
     pyplot.close()
     
 # main window of a visuzliation.
