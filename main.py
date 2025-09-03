@@ -41,7 +41,7 @@ def reset_all():
     num_rows.set('16')
     num_cols.set('24')
     control_names.set("[]")
-    use_compd_flag.set('COMPD')
+    use_compd_flag.set('PLAID')
     label_dzn_loaded.config(text = 'No *.dzn file is loaded')
     label_csv_loaded.config(text = 'No *.csv file is loaded')
     button_run_mzn.config(state = tk.DISABLED)
@@ -145,7 +145,7 @@ def callback(P):
 vcmd = (root.register(callback))
 
 use_compd_flag = tk.StringVar()
-use_compd_flag.set('COMPD')
+use_compd_flag.set('PLAID')
 
 minizinc_path_s, plaid_path_s, compd_path_s, plaid_mpc_path_s, compd_mpc_path_s = ut.read_paths_ini_file()
 
