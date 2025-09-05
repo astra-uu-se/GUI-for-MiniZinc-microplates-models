@@ -109,9 +109,13 @@ def transform_concentrations_to_alphas(concentration_list):
     return alphas
 
 # self-explanatory
-def to_int_if_possible(value):
+def to_number_if_possible(value):
     try:
         return int(value)
+    except:
+        None
+    try:
+        return float(value)
     except:
         return value
 

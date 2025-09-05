@@ -34,7 +34,7 @@ from tkinter import ttk, VERTICAL, RIGHT, Y, LEFT, BOTH
 
 import ast
 
-from utility import transform_coordinate, read_csv_file, transform_concentrations_to_alphas, to_int_if_possible
+from utility import transform_coordinate, read_csv_file, transform_concentrations_to_alphas, to_number_if_possible
 
 
 # main function that loads the csv file, analyzes it, splits it into separate layouts and passes it to draw_plates(**kwargs),
@@ -50,12 +50,12 @@ def draw_plates(parent, figure_name_template, text_array, m = 16, n = 24, contro
             layouts_dict[array[0]] = [array[1:]]
 
         if array[2] in concentrations_list:
-            if to_int_if_possible(array[3]) not in concentrations_list[array[2]]:
-                concentrations_list[array[2]].append(to_int_if_possible(array[3]))
+            if to_number_if_possible(array[3]) not in concentrations_list[array[2]]:
+                concentrations_list[array[2]].append(to_number_if_possible(array[3]))
             else:
                 None
         else:
-            concentrations_list[array[2]] = [to_int_if_possible(array[3])]
+            concentrations_list[array[2]] = [to_number_if_possible(array[3])]
     for material in concentrations_list:
         try:
             concentrations_list[material] = sorted(concentrations_list[material])
@@ -152,7 +152,7 @@ def draw_plate(parent,figure_name_template,layout,layout_array, material_colors,
             x_coords.append(x+0.5)
             y_coords.append(y+0.5)
             try:
-                alphas.append(alpha_values[to_int_if_possible(well[2])])
+                alphas.append(alpha_values[to_number_if_possible(well[2])])
             except:
                 alphas.append(alpha_values[well[2]])
         pyplot.scatter(x_coords, y_coords, marker=marker, c = material_colors[material], s = 80, edgecolor='black', alpha=alphas)
