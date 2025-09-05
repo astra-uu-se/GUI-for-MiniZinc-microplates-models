@@ -57,7 +57,11 @@ def draw_plates(parent, figure_name_template, text_array, m = 16, n = 24, contro
         else:
             concentrations_list[array[2]] = [to_int_if_possible(array[3])]
     for material in concentrations_list:
-        concentrations_list[material] = sorted(concentrations_list[material])
+        try:
+            concentrations_list[material] = sorted(concentrations_list[material])
+        except:
+            concentrations_list[material] = [str(x) for x in concentrations_list[material]]
+            concentrations_list[material] = sorted(concentrations_list[material])
 
     #prng = np.random.RandomState(100)
     colormap = pyplot.get_cmap('tab20')
@@ -147,7 +151,10 @@ def draw_plate(parent,figure_name_template,layout,layout_array, material_colors,
                 [x, y] = transform_coordinate(well[0])
             x_coords.append(x+0.5)
             y_coords.append(y+0.5)
-            alphas.append(alpha_values[to_int_if_possible(well[2])])
+            try:
+                alphas.append(alpha_values[to_int_if_possible(well[2])])
+            except:
+                alphas.append(alpha_values[well[2]])
         pyplot.scatter(x_coords, y_coords, marker=marker, c = material_colors[material], s = 80, edgecolor='black', alpha=alphas)
     
     pyplot.savefig(figure_name_template + layout + '.png')
