@@ -72,7 +72,7 @@ def draw_plates(parent, figure_name_template, text_array, m = 16, n = 24, contro
         color += 1
         if color >= 20:
             color = 0
-    
+
     tab_control = ttk.Notebook(parent)
     for layout in layouts_dict:
         draw_plate(tab_control,figure_name_template,layout,layouts_dict[layout],material_colors,concentrations_list,m,n,control_names)
@@ -155,7 +155,8 @@ def draw_plate(parent,figure_name_template,layout,layout_array, material_colors,
                 alphas.append(alpha_values[to_number_if_possible(well[2])])
             except:
                 alphas.append(alpha_values[well[2]])
-        pyplot.scatter(x_coords, y_coords, marker=marker, c = material_colors[material], s = 80, edgecolor='black', alpha=alphas)
+        colors = [material_colors[material] for i in range(len(x_coords))]
+        pyplot.scatter(x_coords, y_coords, marker=marker, c = colors, s = 80, edgecolor='black', alpha=alphas)
     
     pyplot.savefig(figure_name_template + layout + '.png')
     pyplot.close()

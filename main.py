@@ -29,11 +29,16 @@ from functools import partial
 import utility as ut
 
 import WindowVisuals as wv
+import WindowGenDZN  as wd
 
 
 #------------------------------
 # Functions
 #------------------------------
+# we name the csv-file based on the name of the dzn-file
+def update_csv_path(path):
+    ut.path_show(path, label_csv_loaded)
+    csv_file_path.set(path)
 
 def reset_all():
     dzn_file_path.set('')
@@ -46,10 +51,19 @@ def reset_all():
     label_csv_loaded.config(text = 'No *.csv file is loaded')
     button_run_mzn.config(state = tk.DISABLED)
 
-# TBD
 def gen_dzn():
-    None
-    #button_run_mzn.config(state = tk.NORMAL)
+    wd.gen_dzn_show()
+
+# is used to ensure seamless transfer of data between the main window and the generate dzn-file window
+def connect_gen_dzn():
+    wd.path_main = dzn_file_path
+    wd.label_main = label_dzn_loaded
+    wd.button_main = button_run_mzn
+    wd.num_rows_main = num_rows
+    wd.num_cols_main = num_cols
+    wd.control_names = control_names
+    
+    
 
 # select the dzn-file, extract the relevant information, display it to the user
 def load_dzn():
@@ -58,11 +72,7 @@ def load_dzn():
         filetypes = [ ('dzn files','*.dzn') ]
     )
     if path != '':
-        if len(path) >= 20:
-            prefix = '...'
-        else:
-            prefix = ''
-        label_dzn_loaded.config(text = prefix + path[-20:])
+        ut.path_show(path, label_dzn_loaded)
         dzn_file_path.set(path)
         
         cols, rows, controls_names_text = ut.scan_dzn(path)
@@ -80,15 +90,6 @@ def load_csv():
     )
     if path != '':
         update_csv_path(path)
-
-# we name the csv-file based on the name of the dzn-file
-def update_csv_path(path):
-    if len(path) >= 20:
-        prefix = '...'
-    else:
-        prefix = ''
-    label_csv_loaded.config(text = prefix + path[-20:])
-    csv_file_path.set(path)
 
 # launch MiniZinc model, write the results in the csv-file
 def run_minizinc():
@@ -119,6 +120,11 @@ def visualize():
         figure_name_template = csv_file_path.get()[:-3] + '_' + use_compd_flag.get() + '_'
         wv.visualize(csv_file_path.get(), figure_name_template, num_rows.get(), num_cols.get(), control_names.get())
 
+def on_close():
+    wd.window.destroy()
+    root.destroy()
+    
+
 #------------------------------
 # Global variables
 #------------------------------
@@ -127,33 +133,33 @@ root = tk.Tk()
 root.title("GUI for displaying microplates")
 root.resizable(False, False)
 
-dzn_file_path = tk.StringVar()
-csv_file_path = tk.StringVar()
+root.protocol('WM_DELETE_WINDOW', on_close) # to close both the root window and WindowGenDZN
+
+dzn_file_path = tk.StringVar(root)
+csv_file_path = tk.StringVar(root)
 dzn_file_path.set('')
 csv_file_path.set('')
 
-num_cols = tk.StringVar()
-num_rows = tk.StringVar()
+num_cols = tk.StringVar(root)
+num_rows = tk.StringVar(root)
 num_cols.set('16')
 num_rows.set('24')
 
-control_names = tk.StringVar()
+control_names = tk.StringVar(root)
 control_names.set('[]')
 
-def callback(P):
-    return str.isdigit(P) or P == ""
-vcmd = (root.register(callback))
+vcmd = (root.register(ut.callback))
 
-use_compd_flag = tk.StringVar()
+use_compd_flag = tk.StringVar(root)
 use_compd_flag.set('PLAID')
 
 minizinc_path_s, plaid_path_s, compd_path_s, plaid_mpc_path_s, compd_mpc_path_s = ut.read_paths_ini_file()
 
-minizinc_path = tk.StringVar()
-plaid_path = tk.StringVar()
-compd_path = tk.StringVar()
-plaid_mpc_path = tk.StringVar()
-compd_mpc_path = tk.StringVar()
+minizinc_path = tk.StringVar(root)
+plaid_path = tk.StringVar(root)
+compd_path = tk.StringVar(root)
+plaid_mpc_path = tk.StringVar(root)
+compd_mpc_path = tk.StringVar(root)
 
 minizinc_path.set(minizinc_path_s)
 plaid_path.set(plaid_path_s)
@@ -170,7 +176,7 @@ compd_mpc_path.set(compd_mpc_path_s)
 # frame 1:
 frame_dzn = ttk.LabelFrame(root, text = 'Step 0 - Load *.dzn file (optional):')
 frame_dzn.pack(expand=True, fill="both", padx=10, pady=10)
-button_gen_dzn   = ttk.Button(frame_dzn, state = tk.DISABLED, text = 'Generate *.dzn file')
+button_gen_dzn   = ttk.Button(frame_dzn, state = tk.NORMAL, text = 'Generate *.dzn file')
 button_load_dzn  = ttk.Button(frame_dzn, state = tk.NORMAL, text = 'Load *.dzn file')
 label_dzn_loaded = tk.Label(frame_dzn,  text = 'No *.dzn file is loaded')
 
@@ -185,7 +191,7 @@ button_run_mzn   = ttk.Button(frame_csv,  state = tk.DISABLED, text = 'Run a mod
 button_load_csv  = ttk.Button(frame_csv,  state = tk.NORMAL, text = 'Load *.csv file')
 label_csv_loaded = tk.Label(frame_csv,  text = 'No *.csv file is loaded')
 radio_plaid = ttk.Radiobutton(frame_csv, text = 'PLAID', value='PLAID', variable=use_compd_flag)
-radio_compd = ttk.Radiobutton(frame_csv, text = 'COMPD', value='COMPD', variable=use_compd_flag)
+radio_compd = ttk.Radiobutton(frame_csv, text = 'Other', value='COMPD', variable=use_compd_flag)
 
 radio_plaid.grid(row=0,column=0,columnspan=2,sticky="w")
 radio_compd.grid(row=0,column=2,columnspan=2,sticky="e")
@@ -220,6 +226,7 @@ button_load_csv.configure( command = lambda: load_csv())
 button_visualize.configure(command = lambda: visualize())
 button_reset_all.configure(command = lambda: reset_all())
 
+connect_gen_dzn()
 reset_all()
 
 root.mainloop()

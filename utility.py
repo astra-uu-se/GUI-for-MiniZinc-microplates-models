@@ -28,6 +28,7 @@ import sys
 import ast
 import re
 import numpy as np
+import tkinter as tk
 
 letters_capital = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 letters_inline  = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
@@ -49,7 +50,6 @@ def transform_coordinate(well):
 def read_csv_file(file_path):
     file = open(file_path, 'r')
     layout_text_array = file.readlines()
-    #print(layout_text_array[0:10])
     layout_text_array = layout_text_array[1:]
     file.close()
     return layout_text_array
@@ -141,11 +141,19 @@ def read_paths_ini_file():
 # launch minizinc and solve the problem instance
 def run_cmd(minizinc_path, solver_config, model_file, data_file):
     cmd = minizinc_path + ' --param-file-no-push ' + solver_config + ' ' + model_file  + ' ' + data_file
+    print('command: ' + cmd)
     process = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     #retval = process.wait()
-    output, _ = process.communicate()
+    output, errors = process.communicate()
     output = output.decode('utf-8').strip()
+    errors = errors.decode('utf-8').strip()
     process.kill()
+    
+    print(output) # to help the user see if there are any warnings
+    print(errors) # to help the user see if there are any warnings
+    
+    print('Finished running MiniZinc!')
+    
     return output
 
 # extract the layout from the Minizinc output
@@ -187,3 +195,55 @@ def parse_control_string(control_string):
             except:
                 return '[]'
     return str(control_names)
+
+
+def callback(P):
+    return str.isdigit(P) or P == ""
+
+def path_show(path, label_object):
+    if len(path) >= 20:
+        prefix = '...'
+    else:
+        prefix = ''
+    label_object.config(text = prefix + path[-20:])
+
+
+
+# source: squareRoot17, https://stackoverflow.com/questions/20399243/display-message-when-hovering-over-something-with-mouse-cursor-in-python
+class ToolTip(object):
+    def __init__(self, widget):
+        self.widget = widget
+        self.tipwindow = None
+        self.id = None
+        self.x = self.y = 0
+
+    def showtip(self, text):
+        "Display text in tooltip window"
+        self.text = text
+        if self.tipwindow or not self.text:
+            return
+        x, y, cx, cy = self.widget.bbox("insert")
+        x = x + self.widget.winfo_rootx() + 57
+        y = y + cy + self.widget.winfo_rooty() +27
+        self.tipwindow = tw = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(1)
+        tw.wm_geometry("+%d+%d" % (x, y))
+        label = tk.Label(tw, text=self.text, justify=tk.LEFT,
+                             background="#ffffe0", fg="black", relief=tk.SOLID, borderwidth=1,
+                             font=("tahoma", "12", "normal"))
+        label.pack(ipadx=1)
+
+    def hidetip(self):
+        tw = self.tipwindow
+        self.tipwindow = None
+        if tw:
+            tw.destroy()
+
+def CreateToolTip(widget, text):
+    toolTip = ToolTip(widget)
+    def enter(event):
+        toolTip.showtip(text)
+    def leave(event):
+        toolTip.hidetip()
+    widget.bind('<Enter>', enter)
+    widget.bind('<Leave>', leave)
