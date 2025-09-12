@@ -1,7 +1,7 @@
 # GUI-for-MiniZinc-microplates-models
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A simple GUI to streamline the workflow for using MiniZinc models, which generate microplate layouts. Specifically, it is aimed to be compatible with PLAID ( https://github.com/pharmbio/plaid ) and other future projects.
+A simple GUI to streamline the workflow for using MiniZinc models, which generate microplate layouts. Specifically, it is designed to be compatible with PLAID (https://github.com/pharmbio/plaid) and other future projects.
 
 
 ## Requirements
@@ -16,18 +16,18 @@ The GUI elements are developed by using the `tkinter` library. It is lightweight
 
 This tool allows a user to:
 
-  - load a selected `*.dzn` file (an input data file, it is an optional step)
-  - load a selected `*.csv` file (a microplate layout file, i.e. the results of executing the model)
+  - generate and save a `*.dzn` file with a GUI in a separate window (similar to [PLAID web-page](https://plaid.pharmb.io/))
+  - load an existing `*.dzn` file (an input data file, it is an optional step)
+  - load an existing `*.csv` file (a microplate layout file, i.e. the results of executing the model)
   - launch MiniZinc, which will take the loaded input file and a selected model file (PLAID or another one)
   - visualize the loaded (or generated) layout `*.csv` file in a separate window, where every material (control or drug compound) is represented as a square. The visualization can be enhanced by also loading `*.dzn` file (this enables representing the controls as circles). Note that it automatically saves the figures as `*.png` files
 
-A functionality for the future:
+Future plans:
 
-  - a separate window to help the user generate the `*.dzn` file
   - using a colormap with a larger number (at least 50) of distinct colors
 
 Limitations:
-  - for simplicity of development, it is not possible to select custom names and locations for saved `*.csv` and `*.png`. We use the name and location of the `*.dzn` file
+  - for simplicity of development, it is not possible to select custom names and locations for saved `*.csv` and `*.png` files. We use the name and location of the `*.dzn` file
   - the project currently uses the `tab20` colormap, i.e. 20 distinct colors, meaning that the project repeats the same colors when the number of materials is larger than 20
 
 
