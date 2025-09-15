@@ -16,7 +16,7 @@ The GUI elements are developed by using the `tkinter` library. It is lightweight
 
 This tool allows a user to:
 
-  - generate and save a `*.dzn` file with a GUI in a separate window (similar to [PLAID web-page](https://plaid.pharmb.io/))
+  - generate and save a `*.dzn` file with a GUI in a separate window (similar to PLAID [web-page](https://plaid.pharmb.io/))
   - load an existing `*.dzn` file (an input data file, it is an optional step)
   - load an existing `*.csv` file (a microplate layout file, i.e. the results of executing the model)
   - launch MiniZinc, which will take the loaded input file and a selected model file (PLAID or another one)
