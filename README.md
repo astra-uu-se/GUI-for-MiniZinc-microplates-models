@@ -61,7 +61,7 @@ Example 2: `{'Control1': [5, 'Concentration 1', 'Concentration 2'], 'Control2': 
 
 As you can see, the dictionary format allows us to use a variable number of drugs/controls, where each drug/control can have its own number of replicates and/or the list of concentrations (and whether or not the concentrations are given in a textual or a numerical form). The idea is to have a simple but flexible format, no matter the configuration of materials and concentrations.
 
-I recommend writing down the list of materials in a separate text editor and then copying it into the entry field. A simple conversion macro for Excel is possible in the future.
+I recommend using the Google Sheets page [here](https://docs.google.com/spreadsheets/d/1POLf0_XsRGgFjiWLKvvFxO5cGRLwQZ6w1bvRX51-Rf0/edit?usp=sharing) to authomatically generate the lines. Just copy the resulting text and paste them into the corresponding fields. We also include the Excel file (`Convert the compounds and controls.xlsx`) with the same macro here in the repository.
 
 ## Credits
 
