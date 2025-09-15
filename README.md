@@ -34,7 +34,7 @@ Limitations:
 ## Before launch
 
   1. Install Python (3.12+ recommended) with `numpy` (2.1+ recommended) and `matplotlib` (3.10+ recommended) libraries
-  2. Download [PLAID](https://github.com/pharmbio/plaid) and/or other model files (`*.mzn`) and copy them to a desired location
+  2. (Optional) Download [PLAID](https://github.com/pharmbio/plaid) and/or other model files (`*.mzn`) and copy them to a desired location. We already supplement the forked version of PLAID, which is compatible with the GUI (there are a few options that were added)
   3. Install [MiniZinc](https://www.minizinc.org/)
   4. Configure paths to MiniZinc, PLAID and/or another model files in the `paths.ini` file
   5. (optional) Update solver configuration files for PLAID and/or another model (by default, `plaid_default.mpc` and `compd_default.mpc`, respectively) if you want to switch a solver or change the number of threads used by the solver. You can create additional solver configuration files as well (e.g. if you want to try different settings). Additional notes:
