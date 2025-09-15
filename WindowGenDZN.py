@@ -352,12 +352,12 @@ ut.CreateToolTip(label_cols, text = 'Enter the number of columns of the micropla
 
 ut.CreateToolTip(label_inner_empty_edge,      text = 'Currently, this parameter is hard-coded within PLAID')
 ut.CreateToolTip(label_size_empty_edge,       text = 'How thick the empty edge is? The number must be no less than 0')
-ut.CreateToolTip(label_corner_empty_wells,    text = 'The size of a corner filled with empty wells only. The number must be no less than 0')
+ut.CreateToolTip(label_corner_empty_wells,    text = 'The size of a corner filled with empty wells only. NOT supported by PLAID. The number must be no less than 0')
 ut.CreateToolTip(label_horizontal_cell_lines, text = 'How many horizontal plate lines is required? No less than 1')
 ut.CreateToolTip(label_vertical_cell_lines,   text = 'How many vertical plate lines is required? No less than 1')
 
-ut.CreateToolTip(label_drgs, text = "List all the materials and their concentrations.\nWe use the format of Python dictionaries: {'Drug1': [5,'Concentration 1', 'Concentration 2'], 'Drug2': [10, '0.1', '0.5, '10']},\nwhich means that we will have:\n - Drug1 in concentrations 'Concentration 1' and 'Concentration 2' (5 replicates each) and\n - Drug2 in concentrations 0.1, 0.5 and 10 (10 replicates each).\nI would recommend to write down the list of materials in a separate editor and then copy it here")
-ut.CreateToolTip(label_ctrs, text = "List all the controls and their concentrations.\nWe use the same format as the list of materials.\nAs an illustration, here is another example, for controls:\n   {'Control1': [5,'Concentration 1', 'Concentration 2'], 'Control2': [10, '100'], 'Control3': [3, '100']},\nwhere we have three different controls.\nAs you can see, the dictionary format allows us to use various number of drugs/controls,\nwhere each drug/control can have its own number of replicates and/or the list concentrations")
+ut.CreateToolTip(label_drgs, text = "List all the materials and their concentrations.\nWe use the format of Python dictionaries: {'Drug1': [5, 'Concentration 1', 'Concentration 2'], 'Drug2': [10, '0.1', '0.5, '10']},\nwhich means that we will have:\n - Drug1 in concentrations 'Concentration 1' and 'Concentration 2' (5 replicates each) and\n - Drug2 in concentrations 0.1, 0.5 and 10 (10 replicates each).\nI would recommend to write down the list of materials in a separate editor and then copy it here")
+ut.CreateToolTip(label_ctrs, text = "List all the controls and their concentrations.\nWe use the same format as the list of materials.\nAs an illustration, here is another example, for controls:\n   {'Control1': [5,'Concentration 1', 'Concentration 2'], 'Control2': [10, '100'], 'Control3': [3, '100']},\nwhere we have three different controls.\nAs you can see, the dictionary format allows us to use a variable number of drugs/controls,\nwhere each drug/control can have its own number of replicates and/or the list concentrations")
 
 check_flag_replicates_on_different_plates.configure(command = lambda:check_replicates_on_different_plates())
 check_flag_replicates_on_same_plate.configure(command = lambda: check_replicates_on_same_plate())
