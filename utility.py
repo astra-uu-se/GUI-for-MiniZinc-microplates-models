@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 #
-# Description:  A simple GUI for MiniZinc microplates models
+# Description:  Various supplementary utilities for the simple GUI for MiniZinc microplates models
 #
 # Authors: Ramiz GINDULLIN (ramiz.gindullin@it.uu.se)
 # Version: 1.0

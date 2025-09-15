@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 #
-# Description:  A simple GUI for MiniZinc microplates models
+# Description:  Main window of the simple GUI for the workflow of generating with MiniZinc and displaying microplate layouts
 #
 # Authors: Ramiz GINDULLIN (ramiz.gindullin@it.uu.se)
 # Version: 1.0
@@ -54,7 +54,7 @@ def reset_all():
 def gen_dzn():
     wd.gen_dzn_show()
 
-# is used to ensure seamless transfer of data between the main window and the generate dzn-file window
+# is used to ensure seamless two-way transfer of data between the main window and the generate dzn-file window
 def connect_gen_dzn():
     wd.path_main = dzn_file_path
     wd.label_main = label_dzn_loaded

@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 #
-# Description:  A simple GUI for MiniZinc microplates models
+# Description:  GUI for displaying microplate layouts
 #
 # Authors: Ramiz GINDULLIN (ramiz.gindullin@it.uu.se)
 # Version: 1.0
@@ -166,8 +166,8 @@ def draw_plate(parent,figure_name_template,layout,layout_array, material_colors,
     canvas.draw()
     canvas.get_tk_widget().pack()
     parent.add(tab, text = layout)
+
     
-        
 # draw a scale representing different concentration of a material
 def draw_material_scale(parent, material_name, color, concentrations):
     # Create alpha values from 0.3 to 1

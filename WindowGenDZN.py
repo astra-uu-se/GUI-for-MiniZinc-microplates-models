@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 #
-# Description:  A simple GUI for MiniZinc microplates models
+# Description:  GUI for generating MiniZinc files for PLAID and other similar models
 #
 # Authors: Ramiz GINDULLIN (ramiz.gindullin@it.uu.se)
 # Version: 1.0
@@ -176,8 +176,8 @@ def reset_dzn():
     horizontal_cell_lines.set('1')
     vertical_cell_lines.set('1')
 
-    drgs.set("{'Drug1': [5,'Concentration 1', 'Concentration 2'], 'Drug2': [10, '0.1', '0.5', '10']}")
-    ctrs.set("{'Control1': [5,'Concentration 1', 'Concentration 2'], 'Control2': [10, '100'], 'Control3': [3, '100']}")
+    drgs.set("{'Drug1': [5,'0.1', '0.3'], 'Drug2': [5, '0.1', '0.5', '1']}")
+    ctrs.set("{'pos': [10, '100'], 'neg': [10, '100'], 'DMSO': [20, '100']}")
 
 
 def gen_dzn_show():
@@ -356,8 +356,8 @@ ut.CreateToolTip(label_corner_empty_wells,    text = 'The size of a corner fille
 ut.CreateToolTip(label_horizontal_cell_lines, text = 'How many horizontal plate lines is required? No less than 1')
 ut.CreateToolTip(label_vertical_cell_lines,   text = 'How many vertical plate lines is required? No less than 1')
 
-ut.CreateToolTip(label_drgs, text = "List all the materials and their concentrations.\nWe use the format of Python dictionaries: {'Drug1': [5, 'Concentration 1', 'Concentration 2'], 'Drug2': [10, '0.1', '0.5, '10']},\nwhich means that we will have:\n - Drug1 in concentrations 'Concentration 1' and 'Concentration 2' (5 replicates each) and\n - Drug2 in concentrations 0.1, 0.5 and 10 (10 replicates each).\nI would recommend to write down the list of materials in a separate editor and then copy it here")
-ut.CreateToolTip(label_ctrs, text = "List all the controls and their concentrations.\nWe use the same format as the list of materials.\nAs an illustration, here is another example, for controls:\n   {'Control1': [5,'Concentration 1', 'Concentration 2'], 'Control2': [10, '100'], 'Control3': [3, '100']},\nwhere we have three different controls.\nAs you can see, the dictionary format allows us to use a variable number of drugs/controls,\nwhere each drug/control can have its own number of replicates and/or the list concentrations")
+ut.CreateToolTip(label_drgs, text = "List all the materials and their concentrations.\nWe use the format of Python dictionaries: {'Drug1': [5,'Concentration 1', 'Concentration 2'], 'Drug2': [10, '0.1', '0.5, '10']},\nwhich means that we will have:\n - Drug1 in concentrations 'Concentration 1' and 'Concentration 2' (5 replicates each) and\n - Drug2 in concentrations 0.1, 0.5 and 10 (10 replicates each).\nI would recommend to write down the list of materials in a separate editor and then copy it here")
+ut.CreateToolTip(label_ctrs, text = "List all the controls and their concentrations.\nWe use the same format as the list of materials.\nAs an illustration, here is another example, for controls:\n   {'Control1': [5,'Concentration 1', 'Concentration 2'], 'Control2': [10, '100'], 'Control3': [3, '100']},\nwhere we have three different controls.\nAs you can see, the dictionary format allows us to use various number of drugs/controls,\nwhere each drug/control can have its own number of replicates and/or the list concentrations")
 
 check_flag_replicates_on_different_plates.configure(command = lambda:check_replicates_on_different_plates())
 check_flag_replicates_on_same_plate.configure(command = lambda: check_replicates_on_same_plate())
