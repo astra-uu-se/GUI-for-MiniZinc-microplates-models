@@ -44,6 +44,25 @@ Limitations:
          
   7. Launch `main.py` (e.g. by using the command `python3 main.py`)
 
+## Notes about generating the model file
+
+If an option to generate a `*.dzn` file is selected, then the user must fill in fields listing all the compounds and all their concentrations.
+
+We use the format of Python dictionaries of `{'Material1': [number_of_replicates1, 'Concentration11',...], 'Material2': [number_of_replicates2, 'Concentration21',...], ...}`
+
+Example 1: `{'Drug1': [5, 'Concentration 1', 'Concentration 2'], 'Drug2': [10, '0.1', '0.5, '10']}`, which means that we will have:
+  - `Drug1` in concentrations `Concentration 1` and `Concentration 2` (5 replicates each) and
+  - `Drug2` in concentrations `0.1`, `0.5` and `10` (10 replicates each).
+
+Example 2: `{'Control1': [5, 'Concentration 1', 'Concentration 2'], 'Control2': [10, '100'], 'Control3': [3, '100']},` where we have three types of controls:
+  - `Control1` in concentrations `Concentration 1` and `Concentration 2` (5 replicates each),
+  - `Control2` in concentration `100` (10 replicates), and
+  - `Control3` in concentration `100` (10 replicates).
+
+As you can see, the dictionary format allows us to use various number of drugs/controls, where each drug/control can have its own number of replicates and/or the list concentrations. The idea is to have a simple but flexible format for the user to use no matter the configuration of materials and concentrations.
+
+I recommend to write down the list of materials in a separate editor and then copy it in the entry field.
+
 ## Credits
 
 The project is developed by [Ramiz Gindullin](https://orcid.org/0000-0003-4947-9641)
