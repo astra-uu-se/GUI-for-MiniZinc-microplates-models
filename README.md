@@ -1,7 +1,7 @@
 # GUI-for-MiniZinc-microplates-models
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A simple GUI to streamline the workflow for using MiniZinc models, which generate microplate layouts. Specifically, it is designed to be compatible with PLAID (https://github.com/pharmbio/plaid) and other future projects.
+A simple GUI to streamline the workflow for using MiniZinc models, which generate microplate layouts. Specifically, it is designed to be compatible with [PLAID](https://github.com/pharmbio/plaid) and other future projects.
 
 
 ## Requirements
