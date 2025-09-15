@@ -48,7 +48,9 @@ Limitations:
 
 If an option to generate a `*.dzn` file is selected, then the user must fill in fields listing all the compounds and all their concentrations.
 
-We use the format of Python dictionaries of `{'Material1': [number_of_replicates1, 'Concentration11',...], 'Material2': [number_of_replicates2, 'Concentration21',...], ...}`
+I recommend using the Google Sheets page [here](https://docs.google.com/spreadsheets/d/1POLf0_XsRGgFjiWLKvvFxO5cGRLwQZ6w1bvRX51-Rf0/edit?usp=sharing) to automatically generate the lines. Just copy the resulting text and paste it into the corresponding fields. We also include the Excel file (`Convert the compounds and controls.xlsx`) with the same macro here in the repository.
+
+If a user is interested in creating the list manually (or with a script of their own), it is possible to do so. The project uses the format of Python dictionaries of `{'Material1': [number_of_replicates1, 'Concentration11',...], 'Material2': [number_of_replicates2, 'Concentration21',...], ...}`
 
 Example 1: `{'Drug1': [5, 'Concentration 1', 'Concentration 2'], 'Drug2': [10, '0.1', '0.5, '10']}`, which means that we will have:
   - `Drug1` in concentrations `Concentration 1` and `Concentration 2` (5 replicates each) and
@@ -60,8 +62,6 @@ Example 2: `{'Control1': [5, 'Concentration 1', 'Concentration 2'], 'Control2': 
   - `Control3` in concentration `100` (10 replicates).
 
 As you can see, the dictionary format allows us to use a variable number of drugs/controls, where each drug/control can have its own number of replicates and/or the list of concentrations (and whether or not the concentrations are given in a textual or a numerical form). The idea is to have a simple but flexible format, no matter the configuration of materials and concentrations.
-
-I recommend using the Google Sheets page [here](https://docs.google.com/spreadsheets/d/1POLf0_XsRGgFjiWLKvvFxO5cGRLwQZ6w1bvRX51-Rf0/edit?usp=sharing) to authomatically generate the lines. Just copy the resulting text and paste them into the corresponding fields. We also include the Excel file (`Convert the compounds and controls.xlsx`) with the same macro here in the repository.
 
 ## Credits
 
