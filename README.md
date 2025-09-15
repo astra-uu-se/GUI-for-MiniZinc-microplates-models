@@ -59,9 +59,9 @@ Example 2: `{'Control1': [5, 'Concentration 1', 'Concentration 2'], 'Control2': 
   - `Control2` in concentration `100` (10 replicates), and
   - `Control3` in concentration `100` (10 replicates).
 
-As you can see, the dictionary format allows us to use various number of drugs/controls, where each drug/control can have its own number of replicates and/or the list concentrations. The idea is to have a simple but flexible format for the user to use no matter the configuration of materials and concentrations.
+As you can see, the dictionary format allows us to use a variable number of drugs/controls, where each drug/control can have its own number of replicates and/or the list of concentrations (and whether or not the concentrations are given in a textual or a numerical form). The idea is to have a simple but flexible format, no matter the configuration of materials and concentrations.
 
-I recommend to write down the list of materials in a separate editor and then copy it in the entry field.
+I recommend writing down the list of materials in a separate text editor and then copying it into the entry field. A simple conversion macro for Excel is possible in the future.
 
 ## Credits
 
