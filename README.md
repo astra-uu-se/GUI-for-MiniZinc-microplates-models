@@ -6,9 +6,12 @@ A simple GUI to streamline the workflow for using MiniZinc models, which generat
 
 ## Requirements
 
-The tool is developed in Python 3.12.6, and it requires the installation of `numpy` (version 2.1.1 was used) and `matplotlib` (version 3.10.6 was used) libraries.
+The tool is developed in [Python 3.12.6](https://www.python.org/), and it requires the installation of `numpy` (version 2.1.1 was used) and `matplotlib` (version 3.10.6 was used) packages by using, e.g., the command:
+```
+python -m pip install numpy matplotlib
+```
 
-Earlier versions of Python and the libraries are likely to work, but it is not guaranteed.
+Earlier versions of Python and the packages are likely to work, but it is not guaranteed.
 
 The GUI elements are developed by using the `tkinter` library. It is lightweight and is a Python standard library, though it is somewhat rigid compared to alternatives, such as PyQt6. Thus, there are some limitations on what is possible to accomplish
 
@@ -33,7 +36,7 @@ Limitations:
 
 ## Before launch
 
-  1. Install Python (3.12+ recommended) with `numpy` (2.1+ recommended) and `matplotlib` (3.10+ recommended) libraries
+  1. Install Python (3.12+ recommended) with `numpy` (2.1+ recommended) and `matplotlib` (3.10+ recommended) packages (you can read the articles on how to install [Python](https://www.wikihow.com/Install-Python) and [the packages](https://packaging.python.org/en/latest/tutorials/installing-packages/))
   2. (Optional) Download [PLAID](https://github.com/pharmbio/plaid) and/or other model files (`*.mzn`) and copy them to a desired location. We already supplement the forked version of PLAID, which is compatible with the GUI (there are a few options that were added)
   3. Install [MiniZinc](https://www.minizinc.org/)
   4. Configure paths to MiniZinc, PLAID and/or another model files in the `paths.ini` file
