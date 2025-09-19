@@ -47,6 +47,15 @@ Limitations:
          
   7. Launch `main.py` (e.g. by using the command `python3 main.py`)
 
+## Using the GUI
+
+After you set up the tool and launch it, you can do the following order of operations:
+
+  1. (optional) Generate or load a model file. A model file is useful for the visualisation since it provides the names of controls explicitly. Thus, when you visualise a layout, the controls will be represented as circles, not squares, as the rest of the materials. If you don't have a pre-made file then press `Generate *.dzn file` button. Otherwise, you can load an existing file with `Load *.dzn file` button.
+  2. If a model file is loaded (either from an existing `*.dzn` file or by generating it), then you can run a MiniZink model (PLAID or another one) bu pressing `Run a model` button to produce a layout saved in a separate `*.csv` file. After the layout is generated, it is automatically loaded.
+  3. As an alternative to the previous step, if you already have a `*.csv` file with a layout, you can load it directly by pressing `Load *.csv file` button
+  4. When you get a `*.csv` file loaded (either by running a model or loading it) you can press the `Visualize *.csv` to get visual representation of a layout, where each square represents a specific material. Note that if you also loaded a `*.dzn` file, the controls will be shown as circles.
+
 ## Notes about generating the model file
 
 If an option to generate a `*.dzn` file is selected, then the user must fill in fields listing all the compounds and all their concentrations.
