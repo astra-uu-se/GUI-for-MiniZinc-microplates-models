@@ -149,8 +149,8 @@ def run_cmd(minizinc_path, solver_config, model_file, data_file):
     errors = errors.decode('utf-8').strip()
     process.kill()
     
-    print(output) # to help the user see if there are any warnings
     print(errors) # to help the user see if there are any warnings
+    print(output) # to help the user see if there are any warnings
     
     print('Finished running MiniZinc!')
     
@@ -205,7 +205,7 @@ def path_show(path, label_object):
         prefix = '...'
     else:
         prefix = ''
-    label_object.config(text = prefix + path[-20:])
+    label_object.config(text = 'File loaded: ' + prefix + path[-20:])
 
 
 
