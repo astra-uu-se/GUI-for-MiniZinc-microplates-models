@@ -180,8 +180,11 @@ button_gen_dzn   = ttk.Button(frame_dzn, state = tk.NORMAL, text = 'Generate *.d
 button_load_dzn  = ttk.Button(frame_dzn, state = tk.NORMAL, text = 'Load *.dzn file')
 label_dzn_loaded = tk.Label(frame_dzn,  text = 'No *.dzn file is loaded')
 
-button_gen_dzn.grid(row=0,column=1,columnspan=1,sticky="w")
-button_load_dzn.grid(row=0,column=2,columnspan=1,sticky="e")
+frame_dzn.columnconfigure(0, weight=1)
+frame_dzn.columnconfigure(1, weight=1)
+
+button_gen_dzn.grid(row=0,column=1,columnspan=1,sticky="ew")
+button_load_dzn.grid(row=0,column=2,columnspan=1,sticky="ew")
 label_dzn_loaded.grid(row=1,column=0,columnspan=4,sticky="w")
 
 # frame 2:
@@ -193,11 +196,14 @@ label_csv_loaded = tk.Label(frame_csv,  text = 'No *.csv file is loaded')
 radio_plaid = ttk.Radiobutton(frame_csv, text = 'PLAID', value='PLAID', variable=use_compd_flag)
 radio_compd = ttk.Radiobutton(frame_csv, text = 'Other', value='COMPD', variable=use_compd_flag)
 
-radio_plaid.grid(row=0,column=0,columnspan=2,sticky="w")
-radio_compd.grid(row=0,column=2,columnspan=2,sticky="e")
-button_run_mzn.grid(row=1,column=0,columnspan=2,sticky="w")
-button_load_csv.grid(row=1,column=2,columnspan=2,sticky="e")
-label_csv_loaded.grid(row=2,column=0,columnspan=4,sticky="w")
+frame_csv.columnconfigure(0, weight=1)
+frame_csv.columnconfigure(1, weight=1)
+
+radio_plaid.grid(row=0,column=0,columnspan=1,sticky="")
+radio_compd.grid(row=0,column=1,columnspan=1,sticky="")
+button_run_mzn.grid(row=1,column=0,columnspan=1,sticky="ew")
+button_load_csv.grid(row=1,column=1,columnspan=1,sticky="ew")
+label_csv_loaded.grid(row=2,column=0,columnspan=2,sticky="w")
 
 # frame 3:
 frame_mpl = ttk.LabelFrame(root,  text = 'Step 2 - Visualize the layout:')
@@ -211,12 +217,17 @@ entry_cols = ttk.Entry(frame_mpl, textvariable = num_cols, width = 6,
 button_visualize = ttk.Button(frame_mpl,  state = tk.NORMAL, text = 'Visualize the *.csv file')
 button_reset_all = ttk.Button(frame_mpl,  text = 'Reset')
 
+frame_mpl.columnconfigure(0, weight=1)
+frame_mpl.columnconfigure(1, weight=1)
+frame_mpl.columnconfigure(2, weight=1)
+frame_mpl.columnconfigure(3, weight=1)
+
 label_rows.grid(row=0,column=0,columnspan=1,sticky="w")
 entry_rows.grid(row=0,column=1,columnspan=1,sticky="w")
 label_cols.grid(row=0,column=2,columnspan=1,sticky="w")
 entry_cols.grid(row=0,column=3,columnspan=1,sticky="w")
-button_visualize.grid(row=1,column=0,columnspan=2,sticky="w")
-button_reset_all.grid(row=1,column=2,columnspan=2,sticky="e")
+button_visualize.grid(row=1,column=0,columnspan=2,sticky="ew")
+button_reset_all.grid(row=1,column=2,columnspan=2,sticky="ew")
 
 # assign button commands
 button_gen_dzn.configure(  command = lambda: gen_dzn())
@@ -230,6 +241,3 @@ connect_gen_dzn()
 reset_all()
 
 root.mainloop()
-
-
-
