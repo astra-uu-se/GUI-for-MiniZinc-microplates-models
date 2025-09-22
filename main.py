@@ -176,8 +176,8 @@ compd_mpc_path.set(compd_mpc_path_s)
 # frame 1:
 frame_dzn = ttk.LabelFrame(root, text = 'Step 0 - Generate or load the *.dzn file (optional):')
 frame_dzn.pack(expand=True, fill="both", padx=10, pady=10)
-button_gen_dzn   = ttk.Button(frame_dzn, state = tk.NORMAL, text = 'Generate *.dzn file')
-button_load_dzn  = ttk.Button(frame_dzn, state = tk.NORMAL, text = 'Load *.dzn file')
+button_gen_dzn   = ttk.Button(frame_dzn, width = 12, state = tk.NORMAL, text = 'Generate *.dzn file')
+button_load_dzn  = ttk.Button(frame_dzn, width = 12, state = tk.NORMAL, text = 'Load *.dzn file')
 label_dzn_loaded = tk.Label(frame_dzn,  text = 'No *.dzn file is loaded')
 
 frame_dzn.columnconfigure(0, weight=1)
@@ -190,8 +190,8 @@ label_dzn_loaded.grid(row=1,column=0,columnspan=2,sticky="w")
 # frame 2:
 frame_csv = ttk.LabelFrame(root, text = 'Step 1 - Generate or load the layout (*.csv):')
 frame_csv.pack(expand=True, fill="both", padx=10, pady=10)
-button_run_mzn   = ttk.Button(frame_csv,  state = tk.DISABLED, text = 'Run a model')
-button_load_csv  = ttk.Button(frame_csv,  state = tk.NORMAL, text = 'Load *.csv file')
+button_run_mzn   = ttk.Button(frame_csv, width = 12,  state = tk.DISABLED, text = 'Run a model')
+button_load_csv  = ttk.Button(frame_csv, width = 12,  state = tk.NORMAL, text = 'Load *.csv file')
 label_csv_loaded = tk.Label(frame_csv,  text = 'No *.csv file is loaded')
 radio_plaid = ttk.Radiobutton(frame_csv, text = 'PLAID', value='PLAID', variable=use_compd_flag)
 radio_compd = ttk.Radiobutton(frame_csv, text = 'Other', value='COMPD', variable=use_compd_flag)
@@ -214,8 +214,8 @@ entry_rows = ttk.Entry(frame_mpl, textvariable = num_rows, width = 6,
 label_cols = tk.Label(frame_mpl, text = 'nb cols:')
 entry_cols = ttk.Entry(frame_mpl, textvariable = num_cols, width = 6,
                        validate = 'all', validatecommand = (vcmd, '%P'))
-button_visualize = ttk.Button(frame_mpl,  state = tk.NORMAL, text = 'Visualize *.csv')
-button_reset_all = ttk.Button(frame_mpl,  text = 'Reset')
+button_visualize = ttk.Button(frame_mpl, width = 12,  state = tk.NORMAL, text = 'Visualize *.csv')
+button_reset_all = ttk.Button(frame_mpl, width = 12,  text = 'Reset')
 
 frame_mpl.columnconfigure(0, weight=1)
 frame_mpl.columnconfigure(1, weight=1)
