@@ -62,6 +62,8 @@ def generate_dzn_file():
     dzn_txt += 'num_rows = ' + num_rows.get() + ';\n'
     dzn_txt += 'num_cols = ' + num_cols.get() + ';\n\n'
     
+    if inner_empty_edge.get() == False:  # no printing for PLAID
+        dzn_txt += 'inner_empty_edge_input = ' + str(inner_empty_edge.get()).lower() + ';\n'
     dzn_txt += 'size_empty_edge = ' + size_empty_edge.get() + ';\n'
     dzn_txt += 'size_corner_empty_wells = ' + size_corner_empty_wells.get() + ';\n\n'
     
@@ -139,11 +141,13 @@ def generate_dzn_file():
     print(dzn_txt)
     
     #Step 2 - save the results
-    path = tk.filedialog.asksaveasfilename(filetypes = [ ('dzn files','*.dzn') ])
+    path = tk.filedialog.asksaveasfilename(defaultextension=".dzn", filetypes = [('dzn files','*.dzn') ])
     
     print(path)
     
-    if path is None: # asksaveasfile return `None` if dialog closed with "cancel".
+    if path == None: # asksaveasfile return `None` if dialog is closed with "cancel".
+        return
+    if path == '': # asksaveasfile return `None` if dialog is closed with "cancel".
         return
     
     dzn_file = open(path, "w")
@@ -268,13 +272,13 @@ entry_cols = ttk.Entry(frame_dimentions, textvariable = num_cols, width = 6,
                            validate = 'all', validatecommand = (vcmd, '%P'))
 
 #layout
-label_inner_empty_edge      = tk.Label(frame_layout, text = 'Inner edge (disabled)')
+label_inner_empty_edge      = tk.Label(frame_layout, text = 'Inner edge')
 label_size_empty_edge       = tk.Label(frame_layout, text = 'Empty edge size')
 label_corner_empty_wells    = tk.Label(frame_layout, text = 'Empty corner size')
 label_horizontal_cell_lines = tk.Label(frame_layout, text = 'Number of horizontal lines')
 label_vertical_cell_lines   = tk.Label(frame_layout, text = 'Number of vertical lines')
 
-check_inner_empty_edge = ttk.Checkbutton(frame_layout, state = tk.DISABLED, variable=inner_empty_edge, onvalue = True, offvalue = False)
+check_inner_empty_edge = ttk.Checkbutton(frame_layout, variable=inner_empty_edge, onvalue = True, offvalue = False)
 entry_size_empty_edge = ttk.Entry(frame_layout, textvariable = size_empty_edge, width = 6,
                            validate = 'all', validatecommand = (vcmd, '%P'))
 entry_corner_empty_wells = ttk.Entry(frame_layout, textvariable = size_corner_empty_wells, width = 6,
@@ -350,9 +354,9 @@ ut.CreateToolTip(label_flag_replicates_on_same_plate,            text = 'If enab
 ut.CreateToolTip(label_rows, text = 'Enter the number of rows of the microplate')
 ut.CreateToolTip(label_cols, text = 'Enter the number of columns of the microplate')
 
-ut.CreateToolTip(label_inner_empty_edge,      text = 'Currently, this parameter is hard-coded within PLAID')
-ut.CreateToolTip(label_size_empty_edge,       text = 'How thick the empty edge is? The number must be no less than 0')
-ut.CreateToolTip(label_corner_empty_wells,    text = 'The size of a corner filled with empty wells only. NOT supported by PLAID. The number must be no less than 0')
+ut.CreateToolTip(label_inner_empty_edge,      text = 'Important: when disabled PLAID will not be able compatible with the model file. i.e. for PLAID this parameter must always be set to TRUE!\nWhen set to True, each plate line will have an edge of empty wells.\nWhen False, the whole plate will have an outer edge, but not each individual plate line.\nSee Figure 2 of COMPD article.')
+ut.CreateToolTip(label_size_empty_edge,       text = 'How thick the empty edge is. The number must be no less than 0')
+ut.CreateToolTip(label_corner_empty_wells,    text = 'The size of a corner filled with empty wells only. IGNORED by PLAID. The number must be no less than 0')
 ut.CreateToolTip(label_horizontal_cell_lines, text = 'How many horizontal plate lines is required? No less than 1')
 ut.CreateToolTip(label_vertical_cell_lines,   text = 'How many vertical plate lines is required? No less than 1')
 
