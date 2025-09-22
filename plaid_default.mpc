@@ -5,5 +5,5 @@
     "output-objective": true,
     "output-time": true,
     "solver": "org.gecode.gecode",
-	"parallel": 8
+	"parallel": 4
 }
