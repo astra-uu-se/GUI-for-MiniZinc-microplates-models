@@ -105,7 +105,15 @@ def run_minizinc():
     cmd_to_str = ut.run_cmd(minizinc_path.get(), solver_config, model_file, dzn_file_path.get())
     label_csv_loaded.config(text = 'Done...')
     
-    path = dzn_file_path.get()[:-3] + 'csv'
+    #path = dzn_file_path.get()[:-3] + 'csv'
+    path = tk.filedialog.asksaveasfilename(defaultextension=".csv", filetypes = [('csv files','*.csv') ])
+    
+    print(path)
+    
+    if path == None: # asksaveasfile return `None` if dialog is closed with "cancel".
+        return
+    if path == '': # asksaveasfile return `None` if dialog is closed with "cancel".
+        return
     
     csv_file = open(path, 'w')
     csv_text = ut.extract_csv_text(cmd_to_str)
@@ -174,10 +182,10 @@ compd_mpc_path.set(compd_mpc_path_s)
 #------------------------------
 
 # frame 1:
-frame_dzn = ttk.LabelFrame(root, text = 'Step 0 - Generate or load the *.dzn file (optional):')
+frame_dzn = ttk.LabelFrame(root, text = 'Step 1 - Generate OR load the *.dzn file:')
 frame_dzn.pack(expand=True, fill="both", padx=10, pady=10)
-button_gen_dzn   = ttk.Button(frame_dzn, width = 12, state = tk.NORMAL, text = 'Generate *.dzn file')
-button_load_dzn  = ttk.Button(frame_dzn, width = 12, state = tk.NORMAL, text = 'Load *.dzn file')
+button_gen_dzn   = ttk.Button(frame_dzn, width = 13, state = tk.NORMAL, text = 'Generate *.dzn file')
+button_load_dzn  = ttk.Button(frame_dzn, width = 13, state = tk.NORMAL, text = 'Load *.dzn file')
 label_dzn_loaded = tk.Label(frame_dzn,  text = 'No *.dzn file is loaded')
 
 frame_dzn.columnconfigure(0, weight=1)
@@ -188,10 +196,10 @@ button_load_dzn.grid(row=0,column=1,columnspan=1,sticky="ew")
 label_dzn_loaded.grid(row=1,column=0,columnspan=2,sticky="w")
 
 # frame 2:
-frame_csv = ttk.LabelFrame(root, text = 'Step 1 - Generate or load the layout (*.csv):')
+frame_csv = ttk.LabelFrame(root, text = 'Step 2 - Generate OR load the layout (*.csv):')
 frame_csv.pack(expand=True, fill="both", padx=10, pady=10)
-button_run_mzn   = ttk.Button(frame_csv, width = 12,  state = tk.DISABLED, text = 'Run a model')
-button_load_csv  = ttk.Button(frame_csv, width = 12,  state = tk.NORMAL, text = 'Load *.csv file')
+button_run_mzn   = ttk.Button(frame_csv, width = 13,  state = tk.DISABLED, text = 'Run a model')
+button_load_csv  = ttk.Button(frame_csv, width = 13,  state = tk.NORMAL, text = 'Load *.csv file')
 label_csv_loaded = tk.Label(frame_csv,  text = 'No *.csv file is loaded')
 radio_plaid = ttk.Radiobutton(frame_csv, text = 'PLAID', value='PLAID', variable=use_compd_flag)
 radio_compd = ttk.Radiobutton(frame_csv, text = 'Other', value='COMPD', variable=use_compd_flag)
@@ -206,7 +214,7 @@ button_load_csv.grid(row=1,column=1,columnspan=1,sticky="ew")
 label_csv_loaded.grid(row=2,column=0,columnspan=2,sticky="w")
 
 # frame 3:
-frame_mpl = ttk.LabelFrame(root,  text = 'Step 2 - Visualize the layout (*.csv):')
+frame_mpl = ttk.LabelFrame(root,  text = 'Step 3 - Visualize the layout (*.csv):')
 frame_mpl.pack(expand=True, fill="both", padx=10, pady=10)
 label_rows = tk.Label(frame_mpl, text = 'nb rows:')
 entry_rows = ttk.Entry(frame_mpl, textvariable = num_rows, width = 6,
@@ -214,8 +222,8 @@ entry_rows = ttk.Entry(frame_mpl, textvariable = num_rows, width = 6,
 label_cols = tk.Label(frame_mpl, text = 'nb cols:')
 entry_cols = ttk.Entry(frame_mpl, textvariable = num_cols, width = 6,
                        validate = 'all', validatecommand = (vcmd, '%P'))
-button_visualize = ttk.Button(frame_mpl, width = 12,  state = tk.NORMAL, text = 'Visualize *.csv')
-button_reset_all = ttk.Button(frame_mpl, width = 12,  text = 'Reset')
+button_visualize = ttk.Button(frame_mpl, width = 13,  state = tk.NORMAL, text = 'Visualize *.csv')
+button_reset_all = ttk.Button(frame_mpl, width = 13,  text = 'Reset all')
 
 frame_mpl.columnconfigure(0, weight=1)
 frame_mpl.columnconfigure(1, weight=1)
