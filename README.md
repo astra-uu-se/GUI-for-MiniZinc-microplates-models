@@ -34,7 +34,7 @@ Limitations:
   - the project currently uses the `tab20` colormap, i.e. 20 distinct colors, meaning that the project repeats the same colors when the number of materials is larger than 20
 
 
-## Before launch
+## Installation and setting up
 
   1. Install Python (3.12+ recommended) with `numpy` (2.1+ recommended) and `matplotlib` (3.10+ recommended) packages (you can read the articles on how to install [Python](https://www.wikihow.com/Install-Python) and [the packages](https://packaging.python.org/en/latest/tutorials/installing-packages/))
   2. (Optional) Download [PLAID](https://github.com/pharmbio/plaid) and/or other model files (`*.mzn`) and copy them to a desired location. We already supplement the forked version of PLAID, which is compatible with the GUI (there are a few options that were added)
@@ -44,17 +44,37 @@ Limitations:
      
        - PLAID can only work with GeCode
        - Non-PLAID layout quality might depend on the timeout, i.e. if you are unsatisfied with a solution, you can try to increase the timeout from 180s to e.g. 300s
-         
-  7. Launch `main.py` (e.g. by using the command `python3 main.py`)
+
+## Running the program
+
+To launch the GUI, you need to execute the Python script `main.py`, e.g. by using the command `python3 main.py` in the terminal.
+
+These are tutorials that can help you learn how to execute Python scripts:
+
+  - [W3HTMLschool](https://w3htmlschool.com/howto/how-to-run-a-python-script-a-beginners-guide/)
+  - [WikiHow](https://www.wikihow.com/Use-Windows-Command-Prompt-to-Run-a-Python-File)
+  - [Real Python](https://realpython.com/run-python-scripts/)
+  - [Python Basics](https://pythonbasics.org/execute-python-scripts/)
 
 ## Using the GUI
 
 After you set up the tool and launch it, you can do the following order of operations:
 
-  1. (optional) Generate or load a model file. A model file is useful for the visualisation since it provides the names of controls explicitly. Thus, when you visualise a layout, the controls will be represented as circles, not squares, as the rest of the materials. If you don't have a pre-made file then press `Generate *.dzn file` button. Otherwise, you can load an existing file with `Load *.dzn file` button.
-  2. If a model file is loaded (either from an existing `*.dzn` file or by generating it), then you can run a MiniZink model (PLAID or another one) bu pressing `Run a model` button to produce a layout saved in a separate `*.csv` file. After the layout is generated, it is automatically loaded.
+  1. Generate or load a model file. Having a loaded model fine is optional, but it can serve two purposes:
+
+      - A model file is useful for the visualisation since it provides the names of controls explicitly. When you visualise a layout, the controls will be represented as circles, not squares, as the rest of the materials.
+      - A model file is used to generate a `*.csv` file with a microplate layout, if a layout does not exist yet.
+  
+      If you have an existing `*.csv` file, then you can skip this step.
+  
+      If you don't have a pre-made `*.dzn` file, then press `Generate *.dzn file` button. Otherwise, you can load an existing file with `Load *.dzn file` button.
+  
+  2. If a model file is loaded (either from an existing `*.dzn` file or by generating it), then you can run a MiniZink model (PLAID or another one) by pressing `Run a model` button to produce a layout saved in a separate `*.csv` file. After the layout is generated, it is automatically loaded.
+     
   3. As an alternative to the previous step, if you already have a `*.csv` file with a layout, you can load it directly by pressing `Load *.csv file` button
-  4. When you get a `*.csv` file loaded (either by running a model or loading it) you can press the `Visualize *.csv` to get visual representation of a layout, where each square represents a specific material. Note that if you also loaded a `*.dzn` file, the controls will be shown as circles.
+     
+  4. When you get a `*.csv` file loaded (either by running a model or loading it), you can press the `Visualize *.csv` to get a visual representation of a layout, where each square represents a specific material. Note that if you also loaded a `*.dzn` file, the controls will be shown as circles.
+
 
 ## Notes about generating the model file
 
