@@ -69,7 +69,7 @@ After you set up the tool and launch it, you can do the following order of opera
   
       If you don't have a pre-made `*.dzn` file, then press `Generate *.dzn file` button. Otherwise, you can load an existing file with `Load *.dzn file` button.
   
-  2. If a model file is loaded (either from an existing `*.dzn` file or by generating it), then you can run a MiniZink model (PLAID or another one) by pressing `Run a model` button to produce a layout saved in a separate `*.csv` file. After the layout is generated, it is automatically loaded.
+  2. If a model file is loaded (either from an existing `*.dzn` file or by generating it), then you can run a MiniZinc model (PLAID or another one) by pressing `Run a model` button to produce a layout saved in a separate `*.csv` file. After the layout is generated, it is automatically loaded.
      
   3. As an alternative to the previous step, if you already have a `*.csv` file with a layout, you can load it directly by pressing `Load *.csv file` button
      
