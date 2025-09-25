@@ -11,7 +11,7 @@ The tool is developed in [Python 3.12.6](https://www.python.org/), and it requir
 python -m pip install numpy matplotlib
 ```
 
-Earlier versions of Python and the packages are likely to work, but it is not guaranteed. If the tool does not work or works with some errors, first install the latest versions.
+Earlier versions of Python and the packages are likely to work, but it is not guaranteed. If the tool does not work or works with some errors, first make sure that you are running the latest versions of Python and its packages.
 
 PLAID requires MiniZinc 2.6.4+ (earlier versions might work, but it is not guaranteed)
 
