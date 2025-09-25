@@ -11,7 +11,9 @@ The tool is developed in [Python 3.12.6](https://www.python.org/), and it requir
 python -m pip install numpy matplotlib
 ```
 
-Earlier versions of Python and the packages are likely to work, but it is not guaranteed.
+Earlier versions of Python and the packages are likely to work, but it is not guaranteed. If the tool does not work or works with some errors, first install the latest versions.
+
+PLAID requires MiniZinc 2.6.4+ (earlier versions might work, but it is not guaranteed)
 
 The GUI elements are developed by using the `tkinter` library. It is lightweight and is a Python standard library, though it is somewhat rigid compared to alternatives, such as PyQt6. Thus, there are some limitations on what is possible to accomplish
 
