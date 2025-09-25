@@ -140,9 +140,12 @@ def read_paths_ini_file():
 
 # launch minizinc and solve the problem instance
 def run_cmd(minizinc_path, solver_config, model_file, data_file):
-    cmd = minizinc_path + ' --param-file-no-push ' + solver_config + ' ' + model_file  + ' ' + data_file
-    print('command: ' + cmd)
-    process = subprocess.Popen([cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if sys.platform.startswith('win'):
+        cmd = [minizinc_path, solver_config, model_file, data_file]
+    else:
+        cmd = [minizinc_path + ' --param-file-no-push ' + solver_config + ' ' + model_file  + ' ' + data_file]
+    print('command:', cmd)
+    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     #retval = process.wait()
     output, errors = process.communicate()
     output = output.decode('utf-8').strip()

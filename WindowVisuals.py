@@ -43,6 +43,8 @@ def draw_plates(parent, figure_name_template, text_array, m = 16, n = 24, contro
     layouts_dict = {}
     concentrations_list = {}
     for line in text_array:
+        if line == '\n': # happens on Windows machines
+            continue
         array = line.strip().split(',')
         if array[0] in layouts_dict:
             layouts_dict[array[0]].append(array[1:])
