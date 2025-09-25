@@ -32,7 +32,7 @@ Future plans:
   - using a colormap with a larger number (at least 50) of distinct colors
 
 Limitations:
-  - for simplicity of development, it is not possible to select custom names and locations for saved `*.csv` and `*.png` files. We use the name and location of the `*.dzn` file
+  - for simplicity of development, it is not possible to select custom names and locations for saved `*.png` files. We use the name and location of the `*.csv` file
   - the project currently uses the `tab20` colormap, i.e. 20 distinct colors, meaning that the project repeats the same colors when the number of materials is larger than 20
 
 
