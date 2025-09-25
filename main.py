@@ -21,6 +21,7 @@
 #
 
 
+import sys
 import time
 import tkinter as tk
 from tkinter import ttk
@@ -132,6 +133,9 @@ def on_close():
     wd.window.destroy()
     root.destroy()
     
+
+if sys.platform.startswith('win'):
+    os.system('chcp 65001')  # Change code page to UTF-8
 
 #------------------------------
 # Global variables
