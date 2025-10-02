@@ -119,12 +119,10 @@ def draw_plate(parent,figure_name_template,layout,layout_array, material_colors,
         is_switch = True
     else:
         is_switch = False
-    pyplot.xlim(0, m)
-    pyplot.ylim(0, n)
-
+    
     pyplot.grid(True)
-    pyplot.xticks(np.arange(0, m, 1))
-    pyplot.yticks(np.arange(0, n, 1))
+    pyplot.xticks(np.arange(0, m + 1, 1))
+    pyplot.yticks(np.arange(0, n + 1, 1))
     pyplot.axis('scaled')
 
     materials = {}
@@ -159,6 +157,8 @@ def draw_plate(parent,figure_name_template,layout,layout_array, material_colors,
                 alphas.append(alpha_values[well[2]])
         colors = [material_colors[material] for i in range(len(x_coords))]
         pyplot.scatter(x_coords, y_coords, marker=marker, c = colors, s = 80, edgecolor='black', alpha=alphas)
+    pyplot.xlim(0, m)
+    pyplot.ylim(0, n)
     
     pyplot.savefig(figure_name_template + layout + '.png')
     pyplot.close()
