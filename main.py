@@ -143,7 +143,7 @@ if sys.platform.startswith('win'):
 #------------------------------
 
 root = tk.Tk()
-root.title("GUI for displaying microplates")
+root.title("MPLACE")
 root.resizable(False, False)
 
 root.protocol('WM_DELETE_WINDOW', on_close) # to close both the root window and WindowGenDZN
