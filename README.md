@@ -83,7 +83,7 @@ After you set up MPLACE and launch it, you can do the following order of operati
 
 If an option to generate a `*.dzn` file is selected, the user must fill in fields listing all compounds and their corresponding concentrations.
 
-I recommend using the Google Sheets page [here](https://docs.google.com/spreadsheets/d/1POLf0_XsRGgFjiWLKvvFxO5cGRLwQZ6w1bvRX51-Rf0/edit?usp=sharing) to automatically generate the lines. Just copy the resulting text and paste it into the corresponding fields. We also include the Excel file (`Convert the compounds and controls.xlsx`) with the same macro here in the repository.
+I recommend using the Google Sheets page [here](https://docs.google.com/spreadsheets/d/1POLf0_XsRGgFjiWLKvvFxO5cGRLwQZ6w1bvRX51-Rf0/edit?usp=sharing) to automatically generate the lines. Just copy the resulting text and paste it into the corresponding fields. We also include the Excel file (`Convert the compounds and controls.xlsx`) with the same macro here in the repository, if you wish for an offline solution.
 
 If a user is interested in creating the list manually (or with a script of their own), it is possible to do so. The project uses the format of Python dictionaries of `{'Material1': [number_of_replicates1, 'Concentration11',...], 'Material2': [number_of_replicates2, 'Concentration21',...], ...}`
 
