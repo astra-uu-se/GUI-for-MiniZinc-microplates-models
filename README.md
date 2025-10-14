@@ -1,7 +1,7 @@
 # MPLACE
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-MPLACE (MicroPlate Layout Arrangement with Constraint Engines) is a simple GUI that streamlines the usage of MiniZinc models for microplate layout generation. Specifically, it is designed to be compatible with [PLAID](https://github.com/pharmbio/plaid) and other future projects.
+**MPLACE** (**M**icro**P**late **L**ayout **A**rrangement with **C**onstraint **E**ngines) is a simple GUI that streamlines the usage of MiniZinc models for microplate layout generation. Specifically, it is designed to be compatible with [PLAID](https://github.com/pharmbio/plaid) and other future projects.
 
 
 ## Requirements
