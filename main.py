@@ -77,15 +77,18 @@ def load_dzn():
         filetypes=[('dzn files', '*.dzn')]
     )
     if path != '':
-        ut.path_show(path, label_dzn_loaded)
-        dzn_file_path.set(path)
+        try:
+            ut.path_show(path, label_dzn_loaded)
+            dzn_file_path.set(path)
 
-        cols, rows, controls_names_text = ut.scan_dzn(path)
-        num_cols.set(cols)
-        num_rows.set(rows)
-        control_names.set(controls_names_text)
+            cols, rows, controls_names_text = ut.scan_dzn(path)
+            num_cols.set(cols)
+            num_rows.set(rows)
+            control_names.set(controls_names_text)
 
-        button_run_mzn.config(state=tk.NORMAL)
+            button_run_mzn.config(state=tk.NORMAL)
+        except (FileNotFoundError, ValueError) as e:
+            tk.messagebox.showerror("Error", f"Failed to load DZN file: {str(e)}")
 
 # select the csv-file, extract the relevant information, display it to the user
 
@@ -96,7 +99,10 @@ def load_csv():
         filetypes=[('csv files', '*.csv')]
     )
     if path != '':
-        update_csv_path(path)
+        try:
+            update_csv_path(path)
+        except Exception as e:
+            tk.messagebox.showerror("Error", f"Failed to load CSV file: {str(e)}")
 
 # launch MiniZinc model, write the results in the csv-file
 
@@ -111,40 +117,55 @@ def run_minizinc():
 
     label_csv_loaded.config(text='Running the model...')
     time.sleep(0.25)
-    cmd_to_str = ut.run_cmd(minizinc_path.get(), solver_config,
-                            model_file, dzn_file_path.get())
-    label_csv_loaded.config(text='Done...')
+    
+    try:
+        cmd_to_str = ut.run_cmd(minizinc_path.get(), solver_config,
+                                model_file, dzn_file_path.get())
+        label_csv_loaded.config(text='Done...')
 
-    # path = dzn_file_path.get()[:-3] + 'csv'
-    path = tk.filedialog.asksaveasfilename(
-        defaultextension=".csv", filetypes=[('csv files', '*.csv')])
+        path = tk.filedialog.asksaveasfilename(
+            defaultextension=".csv", filetypes=[('csv files', '*.csv')])
 
-    print(path)
+        print(path)
 
-    if path == None:  # asksaveasfile return `None` if dialog is closed with "cancel".
-        return
-    if path == '':  # asksaveasfile return `None` if dialog is closed with "cancel".
-        return
+        if path is None:  # asksaveasfile return `None` if dialog is closed with "cancel".
+            return
+        if path == '':  # asksaveasfile return `None` if dialog is closed with "cancel".
+            return
 
-    csv_file = open(path, 'w')
-    csv_text = ut.extract_csv_text(cmd_to_str)
-    csv_file.writelines(csv_text)
-    csv_file.close()
+        # Use context manager for file writing
+        try:
+            with open(path, 'w') as csv_file:
+                csv_text = ut.extract_csv_text(cmd_to_str)
+                csv_file.writelines(csv_text)
+        except (IOError, OSError) as e:
+            tk.messagebox.showerror("Error", f"Failed to write CSV file: {str(e)}")
+            return
 
-    update_csv_path(path)
-    csv_file_path.set(path)
+        update_csv_path(path)
+        csv_file_path.set(path)
+        
+    except (RuntimeError, FileNotFoundError) as e:
+        label_csv_loaded.config(text='Error occurred')
+        tk.messagebox.showerror("Error", f"Failed to run MiniZinc: {str(e)}")
 
 
 def visualize():
     if csv_file_path.get() != '':
-        figure_name_template = csv_file_path.get(
-        )[:-3] + '_' + use_compd_flag.get() + '_'
-        wv.visualize(csv_file_path.get(), figure_name_template,
-                     num_rows.get(), num_cols.get(), control_names.get())
+        try:
+            figure_name_template = csv_file_path.get(
+            )[:-3] + '_' + use_compd_flag.get() + '_'
+            wv.visualize(csv_file_path.get(), figure_name_template,
+                         num_rows.get(), num_cols.get(), control_names.get())
+        except Exception as e:
+            tk.messagebox.showerror("Error", f"Failed to visualize: {str(e)}")
 
 
 def on_close():
-    wd.window.destroy()
+    try:
+        wd.window.destroy()
+    except:
+        pass  # Window might already be destroyed
     root.destroy()
 
 
@@ -180,7 +201,11 @@ vcmd = (root.register(ut.callback))
 use_compd_flag = tk.StringVar(root)
 use_compd_flag.set('PLAID')
 
-minizinc_path_s, plaid_path_s, compd_path_s, plaid_mpc_path_s, compd_mpc_path_s = ut.read_paths_ini_file()
+try:
+    minizinc_path_s, plaid_path_s, compd_path_s, plaid_mpc_path_s, compd_mpc_path_s = ut.read_paths_ini_file()
+except FileNotFoundError as e:
+    tk.messagebox.showerror("Configuration Error", str(e))
+    sys.exit(1)
 
 minizinc_path = tk.StringVar(root)
 plaid_path = tk.StringVar(root)

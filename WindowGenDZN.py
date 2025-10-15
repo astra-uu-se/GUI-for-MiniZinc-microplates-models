@@ -40,18 +40,16 @@ def generate_dzn_file():
 
     try:
         compounds = ast.literal_eval(drgs.get())
-    except:
-        error_message = 'Error: the list of drugs has an invalid format:\n' + \
-            drgs.get()[:50]+'\n'
+    except (ValueError, SyntaxError) as e:
+        error_message = f'Error: the list of drugs has an invalid format:\n{drgs.get()[:50]}...\nDetails: {str(e)}'
         print(error_message)
         tk.messagebox.showerror("Invalid input", error_message)
         return
 
     try:
         controls = ast.literal_eval(ctrs.get())
-    except:
-        error_message = 'Error: the list of controls has an invalid format:\n' + \
-            ctrs.get()[:50]+'\n'
+    except (ValueError, SyntaxError) as e:
+        error_message = f'Error: the list of controls has an invalid format:\n{ctrs.get()[:50]}...\nDetails: {str(e)}'
         print(error_message)
         tk.messagebox.showerror("Invalid input", error_message)
         return
@@ -154,14 +152,18 @@ def generate_dzn_file():
 
     print(path)
 
-    if path == None:  # asksaveasfile return `None` if dialog is closed with "cancel".
+    if path is None:  # asksaveasfile return `None` if dialog is closed with "cancel".
         return
     if path == '':  # asksaveasfile return `None` if dialog is closed with "cancel".
         return
 
-    dzn_file = open(path, "w")
-    dzn_file.write(dzn_txt)
-    dzn_file.close()
+    # Use context manager for file writing
+    try:
+        with open(path, "w") as dzn_file:
+            dzn_file.write(dzn_txt)
+    except (IOError, OSError) as e:
+        tk.messagebox.showerror("Error", f"Failed to write DZN file: {str(e)}")
+        return
 
     path_main.set(path)
 
@@ -317,11 +319,6 @@ help_ctrs = tk.Label(frame_materials, text='?', relief='raised')
 
 
 # -----UI placement----
-# frame_flags.pack(expand=True, fill="both", padx=10, pady=10)
-# frame_dimentions.pack(expand=True, fill="both", padx=10, pady=10)
-# frame_layout.pack(expand=True, fill="both", padx=10, pady=10)
-# frame_materials.pack(expand=True, fill="both", padx=10, pady=10)
-# button_visualize.pack()
 frame_flags.grid(row=0, column=0, rowspan=2, columnspan=1, sticky="nw", padx=3, pady=3)
 frame_dimentions.grid(row=0, column=1, rowspan=1, columnspan=1,
                       sticky="nw", padx=3, pady=3)

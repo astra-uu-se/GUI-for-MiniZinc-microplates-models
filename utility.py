@@ -54,24 +54,29 @@ def transform_coordinate(well):
 
 
 def read_csv_file(file_path):
-    file = open(file_path, 'r')
-    layout_text_array = file.readlines()
-    layout_text_array = layout_text_array[1:]
-    file.close()
-    return layout_text_array
+    """Read CSV file and return all lines except header."""
+    try:
+        with open(file_path, 'r') as file:
+            layout_text_array = file.readlines()
+        return layout_text_array[1:]  # Remove header
+    except (FileNotFoundError, IOError) as e:
+        raise FileNotFoundError(f"Could not read CSV file: {file_path}") from e
 
 # scan the dzn file and extract the number of rows, columns and the list of control names
 
 
 def scan_dzn(file_path):
+    """Scan DZN file and extract parameters."""
     rows_str = 'num_rows'  # > num_rows = 16; %% height
     cols_str = 'num_cols'  # > num_cols = 24; %% width
     ctrs_str = 'control_names'
     nb_ctrs_str = 'num_controls'
 
-    file = open(file_path, 'r')
-    dzn_text = file.read()
-    file.close()
+    try:
+        with open(file_path, 'r') as file:
+            dzn_text = file.read()
+    except (FileNotFoundError, IOError) as e:
+        raise FileNotFoundError(f"Could not read DZN file: {file_path}") from e
 
     # remove spaces, tabs and newlines to ensure a more robust scan
     dzn_text = re.sub(r"[\n\t\s]*", "", dzn_text)
@@ -83,22 +88,21 @@ def scan_dzn(file_path):
 
     ctrs = ctrs.replace(nb_ctrs_str, nb_ctrs)
 
-    if rows.isnumeric() & cols.isnumeric():
+    if rows.isnumeric() and cols.isnumeric():
         return cols, rows, str(parse_control_string(ctrs))
     else:
-        print(text)
-        raise Exception('Corrupt dzn file')
+        raise ValueError('Corrupt dzn file - invalid numeric values')
 
 # a helper function that scans the dzn file for a specific parameter
 
 
 def retrieve_dzn_param(text, param_string):
+    """Extract parameter value from DZN text."""
     param_string += '='
     pos = text.find(param_string)
 
     if pos == -1:
-        raise Exception('Can not find dzn parameter (' + param_string + ')')
-        sys.exit('Corrupt dzn file')
+        raise ValueError(f'Cannot find dzn parameter ({param_string})')
 
     pos += len(param_string)
     param_res = text[pos:text.find(';', pos)]
@@ -107,10 +111,11 @@ def retrieve_dzn_param(text, param_string):
 
 # if we have 1  concentration then there is only one alpha-channel value: [1]
 # if we have 2  concentration then there are 2: [0.3, 1]
-# if we have 3+ concentration then there we get a list: [0.3, ..., 1] with eaually spaced values
+# if we have 3+ concentration then there we get a list: [0.3, ..., 1] with equally spaced values
 
 
 def transform_concentrations_to_alphas(concentration_list):
+    """Transform concentration list to alpha values for visualization."""
     min_alpha = 0.3
     max_alpha = 1
     num_alpha = len(concentration_list)
@@ -126,53 +131,65 @@ def transform_concentrations_to_alphas(concentration_list):
 
 
 def to_number_if_possible(value):
+    """Convert string to number if possible, otherwise return original value."""
     try:
         return int(value)
-    except:
-        None
-    try:
-        return float(value)
-    except:
-        return value
+    except ValueError:
+        try:
+            return float(value)
+        except ValueError:
+            return value
 
 # extract relevant information from the ini file
 
 
 def read_paths_ini_file():
-    file = open('paths.ini', 'r')
-    paths_array = file.readlines()
+    """Read and parse paths.ini configuration file."""
+    try:
+        with open('paths.ini', 'r') as file:
+            paths_array = file.readlines()
+    except (FileNotFoundError, IOError) as e:
+        raise FileNotFoundError("Could not read paths.ini file. Please ensure it exists and is readable.") from e
+    
+    # Initialize variables with defaults
+    minizinc_path = plaid_path = compd_path = plaid_mpc_path = compd_mpc_path = ""
+    
     for line in paths_array:
         line_clean = line.strip()
-        if line_clean[:16] == 'minizinc_path = ':
-            minizinc_path = line_clean[17:-1]
-        if line_clean[:13] == 'plaid_path = ':
-            plaid_path = line_clean[14:-1]
-        if line_clean[:13] == 'compd_path = ':
-            compd_path = line_clean[14:-1]
-        if line_clean[:17] == 'plaid_mpc_path = ':
-            plaid_mpc_path = line_clean[18:-1]
-        if line_clean[:17] == 'compd_mpc_path = ':
-            compd_mpc_path = line_clean[18:-1]
-    file.close()
+        if line_clean.startswith('minizinc_path = '):
+            minizinc_path = line_clean[16:].strip('"\'')
+        elif line_clean.startswith('plaid_path = '):
+            plaid_path = line_clean[13:].strip('"\'')
+        elif line_clean.startswith('compd_path = '):
+            compd_path = line_clean[13:].strip('"\'')
+        elif line_clean.startswith('plaid_mpc_path = '):
+            plaid_mpc_path = line_clean[17:].strip('"\'')
+        elif line_clean.startswith('compd_mpc_path = '):
+            compd_mpc_path = line_clean[17:].strip('"\'')
+    
     return minizinc_path, plaid_path, compd_path, plaid_mpc_path, compd_mpc_path
 
 # launch minizinc and solve the problem instance
 
 
 def run_cmd(minizinc_path, solver_config, model_file, data_file):
+    """Execute MiniZinc command and return output."""
     if sys.platform.startswith('win'):
         cmd = [minizinc_path, solver_config, model_file, data_file]
     else:
         cmd = [minizinc_path + ' --param-file-no-push ' +
                solver_config + ' ' + model_file + ' ' + data_file]
     print('command:', cmd)
-    process = subprocess.Popen(
-        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    # retval = process.wait()
-    output, errors = process.communicate()
-    output = output.decode('utf-8').strip()
-    errors = errors.decode('utf-8').strip()
-    process.kill()
+    
+    try:
+        process = subprocess.Popen(
+            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, errors = process.communicate()
+        output = output.decode('utf-8').strip()
+        errors = errors.decode('utf-8').strip()
+        process.kill()
+    except (subprocess.SubprocessError, OSError) as e:
+        raise RuntimeError(f"Failed to execute MiniZinc command: {e}") from e
 
     print(errors)  # to help the user see if there are any warnings
     print(output)  # to help the user see if there are any warnings
@@ -185,6 +202,7 @@ def run_cmd(minizinc_path, solver_config, model_file, data_file):
 
 
 def extract_csv_text(text):
+    """Extract CSV content from MiniZinc output."""
     s, e = 0, 0
     lines = text.split('\n')
     for i in range(len(lines)):
@@ -199,10 +217,14 @@ def extract_csv_text(text):
 
 
 def parse_control_string(control_string):
+    """Parse control string and generate control names."""
     control_names = []
     for section in control_string.split('++'):
         if section.find('..') == -1:
-            control_names.extend(ast.literal_eval(section))
+            try:
+                control_names.extend(ast.literal_eval(section))
+            except (ValueError, SyntaxError):
+                return '[]'
         else:
             try:
                 section = section[1:-1]
@@ -222,16 +244,18 @@ def parse_control_string(control_string):
                 for i in range(i_start, i_end + 1):
                     control_names.append(
                         section[1:pos_index_s] + str(i) + section[pos_index_e + 1:pos_iin-1])
-            except:
+            except (ValueError, IndexError):
                 return '[]'
     return str(control_names)
 
 
 def callback(P):
+    """Validation callback for numeric input."""
     return str.isdigit(P) or P == ""
 
 
 def path_show(path, label_object):
+    """Display truncated path in label widget."""
     if len(path) >= 20:
         prefix = '...'
     else:
