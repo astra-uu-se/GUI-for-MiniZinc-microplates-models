@@ -21,7 +21,6 @@
 #
 
 
-
 import matplotlib as mpl
 from matplotlib import pyplot
 from matplotlib.figure import Figure
@@ -39,11 +38,11 @@ from utility import transform_coordinate, read_csv_file, transform_concentration
 
 # main function that loads the csv file, analyzes it, splits it into separate layouts and passes it to draw_plates(**kwargs),
 # and, lastly, draws first 5 material concentration scales
-def draw_plates(parent, figure_name_template, text_array, m = 16, n = 24, control_names = []):
+def draw_plates(parent, figure_name_template, text_array, m=16, n=24, control_names=[]):
     layouts_dict = {}
     concentrations_list = {}
     for line in text_array:
-        if line == '\n': # happens on Windows machines
+        if line == '\n':  # happens on Windows machines
             continue
         array = line.strip().split(',')
         if array[0] in layouts_dict:
@@ -62,10 +61,11 @@ def draw_plates(parent, figure_name_template, text_array, m = 16, n = 24, contro
         try:
             concentrations_list[material] = sorted(concentrations_list[material])
         except:
-            concentrations_list[material] = [str(x) for x in concentrations_list[material]]
+            concentrations_list[material] = [str(x)
+                                             for x in concentrations_list[material]]
             concentrations_list[material] = sorted(concentrations_list[material])
 
-    #prng = np.random.RandomState(100)
+    # prng = np.random.RandomState(100)
     colormap = pyplot.get_cmap('tab20')
     color = 0
     material_colors = {}
@@ -77,36 +77,41 @@ def draw_plates(parent, figure_name_template, text_array, m = 16, n = 24, contro
 
     tab_control = ttk.Notebook(parent)
     for layout in layouts_dict:
-        draw_plate(tab_control,figure_name_template,layout,layouts_dict[layout],material_colors,concentrations_list,m,n,control_names)
-    tab_control.grid(row = 1, column = 0, padx = 10, pady = 2)
-    
-    tab_control2 = ttk.Frame(parent, width = 400)
-    canvas_right = tk.Canvas(tab_control2, width = 400, height = 500)
+        draw_plate(tab_control, figure_name_template, layout,
+                   layouts_dict[layout], material_colors, concentrations_list, m, n, control_names)
+    tab_control.grid(row=1, column=0, padx=10, pady=2)
+
+    tab_control2 = ttk.Frame(parent, width=400)
+    canvas_right = tk.Canvas(tab_control2, width=400, height=500)
     canvas_right.pack(side="left", fill="both", expand=True)
-    
-    scrollbar = ttk.Scrollbar(tab_control2, orient="vertical", command=canvas_right.yview)
+
+    scrollbar = ttk.Scrollbar(tab_control2, orient="vertical",
+                              command=canvas_right.yview)
     scrollbar.pack(side="right", fill="y")
-    
+
     canvas_right.configure(yscrollcommand=scrollbar.set)
     scrollable_frame = ttk.Frame(canvas_right)
-    
-    scrollable_frame.bind("<Configure>", lambda event: update_scroll_region(event, canvas_right))
-    
+
+    scrollable_frame.bind(
+        "<Configure>", lambda event: update_scroll_region(event, canvas_right))
+
     i = 0
     for material in material_colors:
         i += 1
         material_color = material_colors[material]
         concentration_material = concentrations_list[material]
-        draw_material_scale(scrollable_frame, material, material_color, concentration_material)
-    
+        draw_material_scale(scrollable_frame, material,
+                            material_color, concentration_material)
+
     canvas_right.create_window((0, 0), window=scrollable_frame, anchor="nw")
-    
-    tab_control2.grid(row = 1, column = 1, padx = 10, pady = 2)
+
+    tab_control2.grid(row=1, column=1, padx=10, pady=2)
+
 
 def update_scroll_region(event, canvas):
     canvas.configure(scrollregion=canvas.bbox("all"))
 
- 
+
 # draws a microplate layout
 # note that if concentrations_list is not empty, then the wells containing a material with a name from a list, will be depicted as a circle
 # otherwise a material will be depicted as a square
@@ -115,13 +120,13 @@ def draw_plate(parent, figure_name_template, layout, layout_array, material_colo
     # Create figure
     fig = Figure()
     ax = fig.add_subplot(111)
-    
+
     if n > m:
         m, n = n, m
         is_switch = True
     else:
         is_switch = False
-    
+
     ax.grid(True)
     ax.set_xticks(np.arange(0, m + 1, 1))
     ax.set_yticks(np.arange(0, n + 1, 1))
@@ -156,28 +161,28 @@ def draw_plate(parent, figure_name_template, layout, layout_array, material_colo
                 alphas.append(alpha_values[to_number_if_possible(well[2])])
             except:
                 alphas.append(alpha_values[well[2]])
-                
+
         colors = [material_colors[material] for i in range(len(x_coords))]
         ax.scatter(x_coords, y_coords, marker=marker, c=colors, s=80,
-                  edgecolor='black', alpha=alphas)
+                   edgecolor='black', alpha=alphas)
 
     ax.set_xlim(0, m)
     ax.set_ylim(0, n)
-    
+
     # Save figure before embedding
     fig.savefig(figure_name_template + layout + '.png')
-    
+
     # Create tab and canvas
     tab = ttk.Frame(parent)
     canvas = FigureCanvasTkAgg(fig, master=tab)
     canvas.draw()
     canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
     parent.add(tab, text=layout)
-    
+
     # Store canvas reference for cleanup
     tab.canvas_ref = canvas
 
-    
+
 # draw a scale representing different concentration of a material
 def draw_material_scale(parent, material_name, color, concentrations):
     # Create alpha values from 0.3 to 1
@@ -188,12 +193,12 @@ def draw_material_scale(parent, material_name, color, concentrations):
     rgba_colors[:, :, 0] = color[0]
     rgba_colors[:, :, 1] = color[1]
     rgba_colors[:, :, 2] = color[2]
-    rgba_colors[:, :, 3] = alphas # Set alpha for the alpha channel
+    rgba_colors[:, :, 3] = alphas  # Set alpha for the alpha channel
 
     # Create Figure
     fig = Figure(figsize=(4, 2))
     ax = fig.add_subplot(111)
-    
+
     ax.imshow(rgba_colors, extent=[0, len(concentrations), 0, 1], aspect='auto')
     ax.set_title(material_name)
 
@@ -201,18 +206,20 @@ def draw_material_scale(parent, material_name, color, concentrations):
     x_labels = [str(i) for i in alphas_dict]
     ax.set_xticks(x_ticks)
     ax.set_xticklabels(x_labels)
-    ax.set_yticks([]) # Hide y-axis ticks as it's a 1D spectrum
-    
+    ax.set_yticks([])  # Hide y-axis ticks as it's a 1D spectrum
+
     tab2 = ttk.Frame(parent)
     canvas = FigureCanvasTkAgg(fig, master=tab2)
     canvas.draw()
     canvas.get_tk_widget().pack(fill="both", expand=True)
     tab2.pack(fill="both", expand=True, padx=1, pady=5)
-    
+
     # Store canvas reference for cleanup
     tab2.canvas_ref = canvas
-    
+
 # main window of a visuzliation.
+
+
 def visualize(file_path, figure_name_template, rows, cols, control_names='[]'):
     def cleanup_and_close():
         """Properly cleanup all matplotlib resources before closing"""
@@ -222,23 +229,24 @@ def visualize(file_path, figure_name_template, rows, cols, control_names='[]'):
             pyplot.close('all')  # Close any remaining pyplot figures
         finally:
             window.destroy()
-    
+
     window = tk.Tk()
     quit_button = ttk.Button(window, text='close window')
     quit_button.grid(row=0, column=0, columnspan=2)
     quit_button.configure(command=cleanup_and_close)
     window.title("Visualize GUI")
     window.protocol('WM_DELETE_WINDOW', cleanup_and_close)  # Handle window X button
-    
+
     try:
-        draw_plates(window, figure_name_template, read_csv_file(file_path), 
-                   m=int(rows), n=int(cols), control_names=ast.literal_eval(control_names))
-        window.geometry('+%d+%d'%(10,10))
+        draw_plates(window, figure_name_template, read_csv_file(file_path),
+                    m=int(rows), n=int(cols), control_names=ast.literal_eval(control_names))
+        window.geometry('+%d+%d' % (10, 10))
         window.mainloop()  # Move mainloop here
     except Exception as e:
         print(f"Error in visualization: {e}")
         print(read_csv_file(file_path))
         cleanup_and_close()
+
 
 def cleanup_canvas_widgets(widget):
     """Recursively cleanup matplotlib canvases in widget tree"""
@@ -251,7 +259,7 @@ def cleanup_canvas_widgets(widget):
             del canvas
         except:
             pass
-    
+
     # Recursively check children
     try:
         for child in widget.winfo_children():
