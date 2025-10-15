@@ -110,23 +110,24 @@ def update_scroll_region(event, canvas):
 # draws a microplate layout
 # note that if concentrations_list is not empty, then the wells containing a material with a name from a list, will be depicted as a circle
 # otherwise a material will be depicted as a square
-def draw_plate(parent,figure_name_template,layout,layout_array, material_colors, concentrations_list,
-               m = 16, n = 24, control_names = []):
-    fig1 = pyplot.figure()
+def draw_plate(parent, figure_name_template, layout, layout_array, material_colors, concentrations_list,
+               m=16, n=24, control_names=[]):
+    # Create figure
+    fig = Figure()
+    ax = fig.add_subplot(111)
     
     if n > m:
-        m,n = n,m
+        m, n = n, m
         is_switch = True
     else:
         is_switch = False
     
-    pyplot.grid(True)
-    pyplot.xticks(np.arange(0, m + 1, 1))
-    pyplot.yticks(np.arange(0, n + 1, 1))
-    pyplot.axis('scaled')
+    ax.grid(True)
+    ax.set_xticks(np.arange(0, m + 1, 1))
+    ax.set_yticks(np.arange(0, n + 1, 1))
+    ax.set_aspect('equal')
 
     materials = {}
-    # line = ['D03', 'ctrl1', '1', 'ctrl1_1'], e.g.
     for line in layout_array:
         if line[1] in materials:
             materials[line[1]].append([line[0]] + line[1:])
@@ -155,26 +156,32 @@ def draw_plate(parent,figure_name_template,layout,layout_array, material_colors,
                 alphas.append(alpha_values[to_number_if_possible(well[2])])
             except:
                 alphas.append(alpha_values[well[2]])
+                
         colors = [material_colors[material] for i in range(len(x_coords))]
-        pyplot.scatter(x_coords, y_coords, marker=marker, c = colors, s = 80, edgecolor='black', alpha=alphas)
-    pyplot.xlim(0, m)
-    pyplot.ylim(0, n)
+        ax.scatter(x_coords, y_coords, marker=marker, c=colors, s=80,
+                  edgecolor='black', alpha=alphas)
+
+    ax.set_xlim(0, m)
+    ax.set_ylim(0, n)
     
-    pyplot.savefig(figure_name_template + layout + '.png')
-    pyplot.close()
+    # Save figure before embedding
+    fig.savefig(figure_name_template + layout + '.png')
     
+    # Create tab and canvas
     tab = ttk.Frame(parent)
-    canvas = FigureCanvasTkAgg(fig1, master = tab)
+    canvas = FigureCanvasTkAgg(fig, master=tab)
     canvas.draw()
-    canvas.get_tk_widget().pack()
-    parent.add(tab, text = layout)
+    canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+    parent.add(tab, text=layout)
+    
+    # Store canvas reference for cleanup
+    tab.canvas_ref = canvas
 
     
 # draw a scale representing different concentration of a material
 def draw_material_scale(parent, material_name, color, concentrations):
     # Create alpha values from 0.3 to 1
-    alphas_dict =  transform_concentrations_to_alphas(concentrations)
-
+    alphas_dict = transform_concentrations_to_alphas(concentrations)
     alphas = [alphas_dict[x] for x in alphas_dict]
 
     rgba_colors = np.zeros((1, len(concentrations), 4))
@@ -183,38 +190,71 @@ def draw_material_scale(parent, material_name, color, concentrations):
     rgba_colors[:, :, 2] = color[2]
     rgba_colors[:, :, 3] = alphas # Set alpha for the alpha channel
 
-    fig1 = pyplot.figure(figsize=(4, 2))
-    pyplot.imshow(rgba_colors, extent=[0, len(concentrations), 0, 1], aspect = 'auto')
-
-    pyplot.title(material_name)
-    x_ticks = np.linspace(1, len(concentrations), len(concentrations))
-    x_labels = [str(i) for i in alphas_dict]
-    pyplot.xticks(x_ticks, x_labels)
-    pyplot.yticks([]) # Hide y-axis ticks as it's a 1D spectrum
+    # Create Figure
+    fig = Figure(figsize=(4, 2))
+    ax = fig.add_subplot(111)
     
-    #pyplot.axis('tight')
+    ax.imshow(rgba_colors, extent=[0, len(concentrations), 0, 1], aspect='auto')
+    ax.set_title(material_name)
+
+    x_ticks = np.linspace(0, len(concentrations), len(concentrations))
+    x_labels = [str(i) for i in alphas_dict]
+    ax.set_xticks(x_ticks)
+    ax.set_xticklabels(x_labels)
+    ax.set_yticks([]) # Hide y-axis ticks as it's a 1D spectrum
     
     tab2 = ttk.Frame(parent)
-    canvas = FigureCanvasTkAgg(fig1, master = tab2)
+    canvas = FigureCanvasTkAgg(fig, master=tab2)
     canvas.draw()
-    canvas.get_tk_widget().pack()
-    tab2.pack(fill="both", expand=True, padx = 1, pady = 5)
-    pyplot.close()
+    canvas.get_tk_widget().pack(fill="both", expand=True)
+    tab2.pack(fill="both", expand=True, padx=1, pady=5)
+    
+    # Store canvas reference for cleanup
+    tab2.canvas_ref = canvas
     
 # main window of a visuzliation.
-def visualize(file_path, figure_name_template, rows, cols, control_names = '[]'):
+def visualize(file_path, figure_name_template, rows, cols, control_names='[]'):
+    def cleanup_and_close():
+        """Properly cleanup all matplotlib resources before closing"""
+        try:
+            # Find and cleanup all canvas references
+            cleanup_canvas_widgets(window)
+            pyplot.close('all')  # Close any remaining pyplot figures
+        finally:
+            window.destroy()
+    
     window = tk.Tk()
-    quit_button = ttk.Button(window, text = 'close window')
-    quit_button.grid(row = 0, column = 0, columnspan = 2)
-    quit_button.configure(  command = lambda: [pyplot.close('all'), window.destroy()])
+    quit_button = ttk.Button(window, text='close window')
+    quit_button.grid(row=0, column=0, columnspan=2)
+    quit_button.configure(command=cleanup_and_close)
     window.title("Visualize GUI")
-    window.overrideredirect(True) # disable your window to be closed by regular means
+    window.protocol('WM_DELETE_WINDOW', cleanup_and_close)  # Handle window X button
     
     try:
-        draw_plates(window, figure_name_template, read_csv_file(file_path), m = int(rows), n = int(cols),
-                    control_names = ast.literal_eval(control_names))
+        draw_plates(window, figure_name_template, read_csv_file(file_path), 
+                   m=int(rows), n=int(cols), control_names=ast.literal_eval(control_names))
         window.geometry('+%d+%d'%(10,10))
-    except:
-        # if error, write down the csv file to help the troubleshooting
+        window.mainloop()  # Move mainloop here
+    except Exception as e:
+        print(f"Error in visualization: {e}")
         print(read_csv_file(file_path))
-        window.destroy()
+        cleanup_and_close()
+
+def cleanup_canvas_widgets(widget):
+    """Recursively cleanup matplotlib canvases in widget tree"""
+    if hasattr(widget, 'canvas_ref'):
+        try:
+            canvas = widget.canvas_ref
+            canvas.get_tk_widget().destroy()
+            # Clear the figure
+            canvas.figure.clear()
+            del canvas
+        except:
+            pass
+    
+    # Recursively check children
+    try:
+        for child in widget.winfo_children():
+            cleanup_canvas_widgets(child)
+    except:
+        pass
