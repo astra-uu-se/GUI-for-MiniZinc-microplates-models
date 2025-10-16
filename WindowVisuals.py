@@ -36,9 +36,18 @@ import ast
 from utility import transform_coordinate, read_csv_file, transform_concentrations_to_alphas, to_number_if_possible
 
 
-# main function that loads the csv file, analyzes it, splits it into separate layouts and passes it to draw_plates(**kwargs),
-# and, lastly, draws first 5 material concentration scales
-def draw_plates(parent, figure_name_template, text_array, m=16, n=24, control_names=[]):
+def draw_plates(parent, figure_name_template: str, text_array: list, 
+                num_rows: int = 16, num_cols: int = 24, control_names: list = []) -> None:
+    """Load CSV data, analyze it, split into layouts, and draw plates with material scales.
+    
+    Args:
+        parent: Parent tkinter widget
+        figure_name_template: Template for saved figure names
+        text_array: List of CSV lines to process
+        num_rows: Number of rows in microplate
+        num_cols: Number of columns in microplate  
+        control_names: List of control material names
+    """
     layouts_dict = {}
     concentrations_list = {}
     for line in text_array:
@@ -53,34 +62,37 @@ def draw_plates(parent, figure_name_template, text_array, m=16, n=24, control_na
         if array[2] in concentrations_list:
             if to_number_if_possible(array[3]) not in concentrations_list[array[2]]:
                 concentrations_list[array[2]].append(to_number_if_possible(array[3]))
-            else:
-                None
         else:
             concentrations_list[array[2]] = [to_number_if_possible(array[3])]
+            
+    # Sort concentrations for each material
     for material in concentrations_list:
         try:
             concentrations_list[material] = sorted(concentrations_list[material])
-        except:
-            concentrations_list[material] = [str(x)
-                                             for x in concentrations_list[material]]
+        except TypeError:
+            # Handle mixed types by converting to strings and sorting
+            concentrations_list[material] = [str(x) for x in concentrations_list[material]]
             concentrations_list[material] = sorted(concentrations_list[material])
 
-    # prng = np.random.RandomState(100)
+    # Generate colors for materials using tab20 colormap
     colormap = pyplot.get_cmap('tab20')
-    color = 0
+    color_index = 0
     material_colors = {}
     for material in sorted(concentrations_list.keys()):
-        material_colors[material] = np.array(colormap(color)[:3])
-        color += 1
-        if color >= 20:
-            color = 0
+        material_colors[material] = np.array(colormap(color_index)[:3])
+        color_index += 1
+        if color_index >= 20:
+            color_index = 0
 
+    # Create main plate visualization tabs
     tab_control = ttk.Notebook(parent)
     for layout in layouts_dict:
         draw_plate(tab_control, figure_name_template, layout,
-                   layouts_dict[layout], material_colors, concentrations_list, m, n, control_names)
+                   layouts_dict[layout], material_colors, concentrations_list, 
+                   num_rows, num_cols, control_names)
     tab_control.grid(row=1, column=0, padx=10, pady=2)
 
+    # Create scrollable material scale panel
     tab_control2 = ttk.Frame(parent, width=400)
     canvas_right = tk.Canvas(tab_control2, width=400, height=500)
     canvas_right.pack(side="left", fill="both", expand=True)
@@ -95,43 +107,60 @@ def draw_plates(parent, figure_name_template, text_array, m=16, n=24, control_na
     scrollable_frame.bind(
         "<Configure>", lambda event: update_scroll_region(event, canvas_right))
 
-    i = 0
+    # Draw material concentration scales
     for material in material_colors:
-        i += 1
         material_color = material_colors[material]
         concentration_material = concentrations_list[material]
         draw_material_scale(scrollable_frame, material,
                             material_color, concentration_material)
 
     canvas_right.create_window((0, 0), window=scrollable_frame, anchor="nw")
-
     tab_control2.grid(row=1, column=1, padx=10, pady=2)
 
 
-def update_scroll_region(event, canvas):
+def update_scroll_region(event, canvas) -> None:
+    """Update canvas scroll region when content changes.
+    
+    Args:
+        event: Tkinter event object
+        canvas: Canvas widget to update
+    """
     canvas.configure(scrollregion=canvas.bbox("all"))
 
 
-# draws a microplate layout
-# note that if concentrations_list is not empty, then the wells containing a material with a name from a list, will be depicted as a circle
-# otherwise a material will be depicted as a square
-def draw_plate(parent, figure_name_template, layout, layout_array, material_colors, concentrations_list,
-               m=16, n=24, control_names=[]):
+def draw_plate(parent, figure_name_template: str, layout: str, layout_array: list,
+               material_colors: dict, concentrations_list: dict,
+               num_rows: int = 16, num_cols: int = 24, control_names: list = []) -> None:
+    """Draw a single microplate layout visualization.
+    
+    Args:
+        parent: Parent tkinter widget
+        figure_name_template: Template for saved figure name
+        layout: Layout identifier/name
+        layout_array: Array of layout data
+        material_colors: Dictionary mapping materials to colors
+        concentrations_list: Dictionary of material concentrations
+        num_rows: Number of rows in microplate
+        num_cols: Number of columns in microplate
+        control_names: List of control material names (shown as circles)
+    """
     # Create figure
     fig = Figure()
     ax = fig.add_subplot(111)
 
-    if n > m:
-        m, n = n, m
-        is_switch = True
+    # Ensure consistent orientation (wider dimension is horizontal)
+    if num_cols > num_rows:
+        num_rows, num_cols = num_cols, num_rows
+        is_switched = True
     else:
-        is_switch = False
+        is_switched = False
 
     ax.grid(True)
-    ax.set_xticks(np.arange(0, m + 1, 1))
-    ax.set_yticks(np.arange(0, n + 1, 1))
+    ax.set_xticks(np.arange(0, num_rows + 1, 1))
+    ax.set_yticks(np.arange(0, num_cols + 1, 1))
     ax.set_aspect('equal')
 
+    # Group wells by material
     materials = {}
     for line in layout_array:
         if line[1] in materials:
@@ -139,7 +168,9 @@ def draw_plate(parent, figure_name_template, layout, layout_array, material_colo
         else:
             materials[line[1]] = [[line[0]] + line[1:]]
 
+    # Plot each material
     for material in materials:
+        # Use circles for controls, squares for other materials
         if material in control_names:
             marker = 'o'
         else:
@@ -151,23 +182,25 @@ def draw_plate(parent, figure_name_template, layout, layout_array, material_colo
         y_coords = []
         alphas = []
         for well in materials[material]:
-            if is_switch:
-                [y, x] = transform_coordinate(well[0])
+            if is_switched:
+                [y_coord, x_coord] = transform_coordinate(well[0])
             else:
-                [x, y] = transform_coordinate(well[0])
-            x_coords.append(x+0.5)
-            y_coords.append(y+0.5)
+                [x_coord, y_coord] = transform_coordinate(well[0])
+            x_coords.append(x_coord + 0.5)
+            y_coords.append(y_coord + 0.5)
+            
             try:
                 alphas.append(alpha_values[to_number_if_possible(well[2])])
-            except:
+            except (KeyError, IndexError):
+                # Handle missing concentration data gracefully
                 alphas.append(alpha_values[well[2]])
 
         colors = [material_colors[material] for i in range(len(x_coords))]
         ax.scatter(x_coords, y_coords, marker=marker, c=colors, s=80,
                    edgecolor='black', alpha=alphas)
 
-    ax.set_xlim(0, m)
-    ax.set_ylim(0, n)
+    ax.set_xlim(0, num_rows)
+    ax.set_ylim(0, num_cols)
 
     # Save figure before embedding
     fig.savefig(figure_name_template + layout + '.png')
@@ -183,8 +216,16 @@ def draw_plate(parent, figure_name_template, layout, layout_array, material_colo
     tab.canvas_ref = canvas
 
 
-# draw a scale representing different concentration of a material
-def draw_material_scale(parent, material_name, color, concentrations):
+def draw_material_scale(parent, material_name: str, color: np.ndarray, 
+                        concentrations: list) -> None:
+    """Draw a concentration scale for a specific material.
+    
+    Args:
+        parent: Parent tkinter widget
+        material_name: Name of the material
+        color: RGB color array for the material
+        concentrations: List of concentration values
+    """
     # Create alpha values from 0.3 to 1
     alphas_dict = transform_concentrations_to_alphas(concentrations)
     alphas = [alphas_dict[x] for x in alphas_dict]
@@ -217,16 +258,26 @@ def draw_material_scale(parent, material_name, color, concentrations):
     # Store canvas reference for cleanup
     tab2.canvas_ref = canvas
 
-# main window of a visuzliation.
 
-
-def visualize(file_path, figure_name_template, rows, cols, control_names='[]'):
-    def cleanup_and_close():
-        """Properly cleanup all matplotlib resources before closing"""
+def visualize(file_path: str, figure_name_template: str, rows: str, cols: str, 
+              control_names: str = '[]') -> None:
+    """Main visualization window for microplate layouts.
+    
+    Args:
+        file_path: Path to CSV data file
+        figure_name_template: Template for saved figure names
+        rows: Number of rows as string
+        cols: Number of columns as string
+        control_names: JSON string of control names (default: '[]')
+    """
+    def cleanup_and_close() -> None:
+        """Properly cleanup all matplotlib resources before closing."""
         try:
             # Find and cleanup all canvas references
             cleanup_canvas_widgets(window)
             pyplot.close('all')  # Close any remaining pyplot figures
+        except Exception as e:
+            print(f"Warning during cleanup: {e}")
         finally:
             window.destroy()
 
@@ -239,17 +290,22 @@ def visualize(file_path, figure_name_template, rows, cols, control_names='[]'):
 
     try:
         draw_plates(window, figure_name_template, read_csv_file(file_path),
-                    m=int(rows), n=int(cols), control_names=ast.literal_eval(control_names))
+                    num_rows=int(rows), num_cols=int(cols), 
+                    control_names=ast.literal_eval(control_names))
         window.geometry('+%d+%d' % (10, 10))
-        window.mainloop()  # Move mainloop here
+        window.mainloop()
     except Exception as e:
-        print(f"Error in visualization: {e}")
         print(read_csv_file(file_path))
+        print(f"Error in visualization: {e}")
         cleanup_and_close()
 
 
-def cleanup_canvas_widgets(widget):
-    """Recursively cleanup matplotlib canvases in widget tree"""
+def cleanup_canvas_widgets(widget) -> None:
+    """Recursively cleanup matplotlib canvases in widget tree.
+    
+    Args:
+        widget: Root widget to start cleanup from
+    """
     if hasattr(widget, 'canvas_ref'):
         try:
             canvas = widget.canvas_ref
@@ -257,12 +313,14 @@ def cleanup_canvas_widgets(widget):
             # Clear the figure
             canvas.figure.clear()
             del canvas
-        except:
+        except (AttributeError, tk.TclError):
+            # Canvas might already be destroyed
             pass
 
     # Recursively check children
     try:
         for child in widget.winfo_children():
             cleanup_canvas_widgets(child)
-    except:
+    except (AttributeError, tk.TclError):
+        # Widget might be destroyed during iteration
         pass

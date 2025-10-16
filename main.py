@@ -37,13 +37,19 @@ import WindowGenDZN as wd
 # ------------------------------
 # Functions
 # ------------------------------
-# we name the csv-file based on the name of the dzn-file
-def update_csv_path(path):
+
+def update_csv_path(path: str) -> None:
+    """Update CSV file path and display it in the UI.
+    
+    Args:
+        path: Path to CSV file
+    """
     ut.path_show(path, label_csv_loaded)
     csv_file_path.set(path)
 
 
-def reset_all():
+def reset_all() -> None:
+    """Reset all form fields and UI state to defaults."""
     dzn_file_path.set('')
     csv_file_path.set('')
     num_rows.set('16')
@@ -52,26 +58,29 @@ def reset_all():
     use_compd_flag.set('PLAID')
     label_dzn_loaded.config(text='No *.dzn file is loaded')
     label_csv_loaded.config(text='No *.csv file is loaded')
-    button_run_mzn.config(state=tk.DISABLED)
+    button_run_minizinc.config(state=tk.DISABLED)
 
 
-def gen_dzn():
+def generate_dzn() -> None:
+    """Show the DZN file generation window."""
     wd.gen_dzn_show()
 
-# is used to ensure seamless two-way transfer of data between the main window and the generate dzn-file window
 
-
-def connect_gen_dzn():
+def connect_generate_dzn() -> None:
+    """Connect main window variables to DZN generation window.
+    
+    Ensures seamless two-way transfer of data between windows.
+    """
     wd.path_main = dzn_file_path
     wd.label_main = label_dzn_loaded
-    wd.button_main = button_run_mzn
+    wd.button_main = button_run_minizinc
     wd.num_rows_main = num_rows
     wd.num_cols_main = num_cols
     wd.control_names = control_names
 
 
-# select the dzn-file, extract the relevant information, display it to the user
-def load_dzn():
+def load_dzn() -> None:
+    """Load DZN file, extract information, and update UI."""
     path = tk.filedialog.askopenfilename(
         title='open dzn file',
         filetypes=[('dzn files', '*.dzn')]
@@ -86,14 +95,13 @@ def load_dzn():
             num_rows.set(rows)
             control_names.set(controls_names_text)
 
-            button_run_mzn.config(state=tk.NORMAL)
+            button_run_minizinc.config(state=tk.NORMAL)
         except (FileNotFoundError, ValueError) as e:
             tk.messagebox.showerror("Error", f"Failed to load DZN file: {str(e)}")
 
-# select the csv-file, extract the relevant information, display it to the user
 
-
-def load_csv():
+def load_csv() -> None:
+    """Load CSV file and update UI."""
     path = tk.filedialog.askopenfilename(
         title='open csv file',
         filetypes=[('csv files', '*.csv')]
@@ -104,13 +112,12 @@ def load_csv():
         except Exception as e:
             tk.messagebox.showerror("Error", f"Failed to load CSV file: {str(e)}")
 
-# launch MiniZinc model, write the results in the csv-file
 
-
-def run_minizinc():
+def run_minizinc() -> None:
+    """Launch MiniZinc model and write results to CSV file."""
     if use_compd_flag.get() == 'COMPD':
-        solver_config = compd_mpc_path.get()
-        model_file = compd_path.get()
+        solver_config = compound_mpc_path.get()
+        model_file = compound_path.get()
     else:
         solver_config = plaid_mpc_path.get()
         model_file = plaid_path.get()
@@ -128,9 +135,7 @@ def run_minizinc():
 
         print(path)
 
-        if path is None:  # asksaveasfile return `None` if dialog is closed with "cancel".
-            return
-        if path == '':  # asksaveasfile return `None` if dialog is closed with "cancel".
+        if path is None or path == '':
             return
 
         # Use context manager for file writing
@@ -150,22 +155,24 @@ def run_minizinc():
         tk.messagebox.showerror("Error", f"Failed to run MiniZinc: {str(e)}")
 
 
-def visualize():
+def visualize() -> None:
+    """Launch visualization window for CSV data."""
     if csv_file_path.get() != '':
         try:
-            figure_name_template = csv_file_path.get(
-            )[:-3] + '_' + use_compd_flag.get() + '_'
+            figure_name_template = csv_file_path.get()[:-3] + '_' + use_compd_flag.get() + '_'
             wv.visualize(csv_file_path.get(), figure_name_template,
                          num_rows.get(), num_cols.get(), control_names.get())
         except Exception as e:
             tk.messagebox.showerror("Error", f"Failed to visualize: {str(e)}")
 
 
-def on_close():
+def on_close() -> None:
+    """Handle window close event, ensuring all windows are properly destroyed."""
     try:
         wd.window.destroy()
-    except:
-        pass  # Window might already be destroyed
+    except (AttributeError, tk.TclError):
+        # Window might not exist or already be destroyed
+        pass
     root.destroy()
 
 
@@ -180,7 +187,7 @@ root = tk.Tk()
 root.title("MPLACE")
 root.resizable(False, False)
 
-# to close both the root window and WindowGenDZN
+# Close both the root window and WindowGenDZN properly
 root.protocol('WM_DELETE_WINDOW', on_close)
 
 dzn_file_path = tk.StringVar(root)
@@ -224,29 +231,29 @@ compd_mpc_path.set(compd_mpc_path_s)
 # UI elements and callbacks
 # ------------------------------
 
-# frame 1:
+# Frame 1: DZN file generation/loading
 frame_dzn = ttk.LabelFrame(root, text='Step 1 - Generate OR load the *.dzn file:')
 frame_dzn.pack(expand=True, fill="both", padx=10, pady=10)
-button_gen_dzn = ttk.Button(
+button_generate_dzn = ttk.Button(
     frame_dzn, width=13, state=tk.NORMAL, text='Generate *.dzn file')
 button_load_dzn = ttk.Button(
     frame_dzn, width=13, state=tk.NORMAL, text='Load *.dzn file')
-label_dzn_loaded = tk.Label(frame_dzn,  text='No *.dzn file is loaded')
+label_dzn_loaded = tk.Label(frame_dzn, text='No *.dzn file is loaded')
 
 frame_dzn.columnconfigure(0, weight=1)
 frame_dzn.columnconfigure(1, weight=1)
 
-button_gen_dzn.grid(row=0, column=0, columnspan=1, sticky="ew")
+button_generate_dzn.grid(row=0, column=0, columnspan=1, sticky="ew")
 button_load_dzn.grid(row=0, column=1, columnspan=1, sticky="ew")
 label_dzn_loaded.grid(row=1, column=0, columnspan=2, sticky="w")
 
-# frame 2:
+# Frame 2: CSV file generation/loading
 frame_csv = ttk.LabelFrame(root, text='Step 2 - Generate OR load the layout (*.csv):')
 frame_csv.pack(expand=True, fill="both", padx=10, pady=10)
-button_run_mzn = ttk.Button(frame_csv, width=13,  state=tk.DISABLED, text='Run a model')
+button_run_minizinc = ttk.Button(frame_csv, width=13, state=tk.DISABLED, text='Run a model')
 button_load_csv = ttk.Button(
-    frame_csv, width=13,  state=tk.NORMAL, text='Load *.csv file')
-label_csv_loaded = tk.Label(frame_csv,  text='No *.csv file is loaded')
+    frame_csv, width=13, state=tk.NORMAL, text='Load *.csv file')
+label_csv_loaded = tk.Label(frame_csv, text='No *.csv file is loaded')
 radio_plaid = ttk.Radiobutton(frame_csv, text='PLAID',
                               value='PLAID', variable=use_compd_flag)
 radio_compd = ttk.Radiobutton(frame_csv, text='Other',
@@ -257,27 +264,27 @@ frame_csv.columnconfigure(1, weight=1)
 
 radio_plaid.grid(row=0, column=0, columnspan=1, sticky="")
 radio_compd.grid(row=0, column=1, columnspan=1, sticky="")
-button_run_mzn.grid(row=1, column=0, columnspan=1, sticky="ew")
+button_run_minizinc.grid(row=1, column=0, columnspan=1, sticky="ew")
 button_load_csv.grid(row=1, column=1, columnspan=1, sticky="ew")
 label_csv_loaded.grid(row=2, column=0, columnspan=2, sticky="w")
 
-# frame 3:
-frame_mpl = ttk.LabelFrame(root,  text='Step 3 - Visualize the layout (*.csv):')
-frame_mpl.pack(expand=True, fill="both", padx=10, pady=10)
-label_rows = tk.Label(frame_mpl, text='nb rows:')
-entry_rows = ttk.Entry(frame_mpl, textvariable=num_rows, width=6,
+# Frame 3: Visualization
+frame_matplotlib = ttk.LabelFrame(root, text='Step 3 - Visualize the layout (*.csv):')
+frame_matplotlib.pack(expand=True, fill="both", padx=10, pady=10)
+label_rows = tk.Label(frame_matplotlib, text='nb rows:')
+entry_rows = ttk.Entry(frame_matplotlib, textvariable=num_rows, width=6,
                        validate='all', validatecommand=(vcmd, '%P'))
-label_cols = tk.Label(frame_mpl, text='nb cols:')
-entry_cols = ttk.Entry(frame_mpl, textvariable=num_cols, width=6,
+label_cols = tk.Label(frame_matplotlib, text='nb cols:')
+entry_cols = ttk.Entry(frame_matplotlib, textvariable=num_cols, width=6,
                        validate='all', validatecommand=(vcmd, '%P'))
 button_visualize = ttk.Button(
-    frame_mpl, width=13,  state=tk.NORMAL, text='Visualize *.csv')
-button_reset_all = ttk.Button(frame_mpl, width=13,  text='Reset all')
+    frame_matplotlib, width=13, state=tk.NORMAL, text='Visualize *.csv')
+button_reset_all = ttk.Button(frame_matplotlib, width=13, text='Reset all')
 
-frame_mpl.columnconfigure(0, weight=1)
-frame_mpl.columnconfigure(1, weight=1)
-frame_mpl.columnconfigure(2, weight=1)
-frame_mpl.columnconfigure(3, weight=1)
+frame_matplotlib.columnconfigure(0, weight=1)
+frame_matplotlib.columnconfigure(1, weight=1)
+frame_matplotlib.columnconfigure(2, weight=1)
+frame_matplotlib.columnconfigure(3, weight=1)
 
 label_rows.grid(row=0, column=0, columnspan=1, sticky="w")
 entry_rows.grid(row=0, column=1, columnspan=1, sticky="w")
@@ -286,15 +293,15 @@ entry_cols.grid(row=0, column=3, columnspan=1, sticky="w")
 button_visualize.grid(row=1, column=0, columnspan=2, sticky="ew")
 button_reset_all.grid(row=1, column=2, columnspan=2, sticky="ew")
 
-# assign button commands
-button_gen_dzn.configure(command=lambda: gen_dzn())
+# Assign button commands
+button_generate_dzn.configure(command=lambda: generate_dzn())
 button_load_dzn.configure(command=lambda: load_dzn())
-button_run_mzn.configure(command=lambda: run_minizinc())
+button_run_minizinc.configure(command=lambda: run_minizinc())
 button_load_csv.configure(command=lambda: load_csv())
 button_visualize.configure(command=lambda: visualize())
 button_reset_all.configure(command=lambda: reset_all())
 
-connect_gen_dzn()
+connect_generate_dzn()
 reset_all()
 
 root.mainloop()
