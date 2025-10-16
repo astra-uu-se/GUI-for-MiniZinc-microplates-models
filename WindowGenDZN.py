@@ -22,7 +22,8 @@
 
 
 import tkinter as tk
-from tkinter import ttk, VERTICAL, RIGHT, Y, LEFT, BOTH, SOLID
+from tkinter import ttk, VERTICAL, RIGHT, Y, LEFT, BOTH, SOLID, filedialog, messagebox
+from typing import Dict, Any, List, Tuple
 
 import ast
 import re
@@ -42,7 +43,7 @@ def generate_dzn_file() -> None:
         return
 
     try:
-        compounds = ast.literal_eval(drugs.get())
+        compounds: Dict[str, List[Any]] = ast.literal_eval(drugs.get())
     except (ValueError, SyntaxError) as e:
         error_message = f'Error: the list of drugs has an invalid format:\n{drugs.get()[:50]}...\nDetails: {str(e)}'
         print(error_message)
@@ -50,7 +51,7 @@ def generate_dzn_file() -> None:
         return
 
     try:
-        control_compounds = ast.literal_eval(controls.get())
+        control_compounds: Dict[str, List[Any]] = ast.literal_eval(controls.get())
     # TODO: add another test - check that it fits the format of {'Name1': [Amount, 'Concentratio1',...],...}
     # e.g., {'Drug1': [5,'2', 'N/A'], 'Drug2': [10, '0.1', '0.5, '10']}
     except (ValueError, SyntaxError) as e:
@@ -82,9 +83,9 @@ def generate_dzn_file() -> None:
 
     # Process compounds data
     nb_compounds = 0
-    compound_concentrations = []
-    compound_names = []
-    compound_replicates = []
+    compound_concentrations: List[int] = []
+    compound_names: List[str] = []
+    compound_replicates: List[int] = []
 
     for drug in compounds:
         nb_compounds += 1
@@ -116,9 +117,9 @@ def generate_dzn_file() -> None:
 
     # Process controls data
     nb_controls = 0
-    control_concentrations = []
-    control_names_str = []
-    control_replicates = []
+    control_concentrations: List[int] = []
+    control_names_str: List[str] = []
+    control_replicates: List[int] = []
 
     for control in control_compounds:
         nb_controls += 1
@@ -215,7 +216,7 @@ def check_replicates_on_same_plate() -> None:
 
 
 # Main window setup
-window = tk.Tk()
+window: tk.Tk = tk.Tk()
 window.title("Generate *.dzn file")
 window.resizable(False, False)
 window.geometry('+%d+%d' % (30, 30))
@@ -223,97 +224,97 @@ window.protocol('WM_DELETE_WINDOW', window.withdraw)
 window.withdraw()
 
 # Variables for connection with main window
-path_main = tk.StringVar()
-label_main = tk.Label()
-button_main = ttk.Button()
-control_names = tk.StringVar()
-num_rows_main = tk.StringVar()
-num_cols_main = tk.StringVar()
+path_main: tk.StringVar = tk.StringVar()
+label_main: tk.Label = tk.Label()
+button_main: ttk.Button = ttk.Button()
+control_names: tk.StringVar = tk.StringVar()
+num_rows_main: tk.StringVar = tk.StringVar()
+num_cols_main: tk.StringVar = tk.StringVar()
 
 # Local variables
-vcmd = (window.register(ut.callback))
+vcmd: Tuple = (window.register(ut.callback))
 
-flag_allow_empty_wells = tk.BooleanVar()
-flag_concentrations_on_different_rows = tk.BooleanVar()
-flag_concentrations_on_different_columns = tk.BooleanVar()
-flag_replicates_on_different_plates = tk.BooleanVar()
-flag_replicates_on_same_plate = tk.BooleanVar()
+flag_allow_empty_wells: tk.BooleanVar = tk.BooleanVar()
+flag_concentrations_on_different_rows: tk.BooleanVar = tk.BooleanVar()
+flag_concentrations_on_different_columns: tk.BooleanVar = tk.BooleanVar()
+flag_replicates_on_different_plates: tk.BooleanVar = tk.BooleanVar()
+flag_replicates_on_same_plate: tk.BooleanVar = tk.BooleanVar()
 
-num_rows = tk.StringVar(window)
-num_cols = tk.StringVar(window)
+num_rows: tk.StringVar = tk.StringVar(window)
+num_cols: tk.StringVar = tk.StringVar(window)
 
-inner_empty_edge = tk.BooleanVar()
-size_empty_edge = tk.StringVar(window)
-size_corner_empty_wells = tk.StringVar(window)
-horizontal_cell_lines = tk.StringVar(window)
-vertical_cell_lines = tk.StringVar(window)
+inner_empty_edge: tk.BooleanVar = tk.BooleanVar()
+size_empty_edge: tk.StringVar = tk.StringVar(window)
+size_corner_empty_wells: tk.StringVar = tk.StringVar(window)
+horizontal_cell_lines: tk.StringVar = tk.StringVar(window)
+vertical_cell_lines: tk.StringVar = tk.StringVar(window)
 
-drugs = tk.StringVar(window)
-controls = tk.StringVar(window)
+drugs: tk.StringVar = tk.StringVar(window)
+controls: tk.StringVar = tk.StringVar(window)
 
 # UI elements
-frame_flags = ttk.LabelFrame(window, text='Main properties:')
-frame_dimensions = ttk.LabelFrame(window, text='Plate dimensions:')
-frame_layout = ttk.LabelFrame(window, text='Layout properties:')
-frame_materials = ttk.LabelFrame(window, text='Materials:')
-button_generate = ttk.Button(window, state=tk.NORMAL, text='Generate *.dzn file')
+frame_flags: ttk.LabelFrame = ttk.LabelFrame(window, text='Main properties:')
+frame_dimensions: ttk.LabelFrame = ttk.LabelFrame(window, text='Plate dimensions:')
+frame_layout: ttk.LabelFrame = ttk.LabelFrame(window, text='Layout properties:')
+frame_materials: ttk.LabelFrame = ttk.LabelFrame(window, text='Materials:')
+button_generate: ttk.Button = ttk.Button(window, state=tk.NORMAL, text='Generate *.dzn file')
 
 # Flags section
-label_flag_allow_empty_wells = tk.Label(frame_flags, text='Allow empty wells')
-label_flag_concentrations_on_different_rows = tk.Label(
+label_flag_allow_empty_wells: tk.Label = tk.Label(frame_flags, text='Allow empty wells')
+label_flag_concentrations_on_different_rows: tk.Label = tk.Label(
     frame_flags, text='Replicates on different rows')
-label_flag_concentrations_on_different_columns = tk.Label(
+label_flag_concentrations_on_different_columns: tk.Label = tk.Label(
     frame_flags, text='Replicates on different columns')
-label_flag_replicates_on_different_plates = tk.Label(
+label_flag_replicates_on_different_plates: tk.Label = tk.Label(
     frame_flags, text='Replicates on different plates')
-label_flag_replicates_on_same_plate = tk.Label(
+label_flag_replicates_on_same_plate: tk.Label = tk.Label(
     frame_flags, text='Replicates on the same plate')
 
-check_flag_allow_empty_wells = ttk.Checkbutton(
+check_flag_allow_empty_wells: ttk.Checkbutton = ttk.Checkbutton(
     frame_flags, variable=flag_allow_empty_wells, onvalue=True, offvalue=False)
-check_flag_concentrations_on_different_rows = ttk.Checkbutton(
+check_flag_concentrations_on_different_rows: ttk.Checkbutton = ttk.Checkbutton(
     frame_flags, variable=flag_concentrations_on_different_rows, onvalue=True, offvalue=False)
-check_flag_concentrations_on_different_columns = ttk.Checkbutton(
+check_flag_concentrations_on_different_columns: ttk.Checkbutton = ttk.Checkbutton(
     frame_flags, variable=flag_concentrations_on_different_columns, onvalue=True, offvalue=False)
-check_flag_replicates_on_different_plates = ttk.Checkbutton(
+check_flag_replicates_on_different_plates: ttk.Checkbutton = ttk.Checkbutton(
     frame_flags, variable=flag_replicates_on_different_plates, onvalue=True, offvalue=False)
-check_flag_replicates_on_same_plate = ttk.Checkbutton(
+check_flag_replicates_on_same_plate: ttk.Checkbutton = ttk.Checkbutton(
     frame_flags, variable=flag_replicates_on_same_plate, onvalue=True, offvalue=False)
 
 # Dimensions section
-label_rows = tk.Label(frame_dimensions, text='Number of rows')
-label_cols = tk.Label(frame_dimensions, text='Number of columns')
+label_rows: tk.Label = tk.Label(frame_dimensions, text='Number of rows')
+label_cols: tk.Label = tk.Label(frame_dimensions, text='Number of columns')
 
-entry_rows = ttk.Entry(frame_dimensions, textvariable=num_rows, width=6,
+entry_rows: ttk.Entry = ttk.Entry(frame_dimensions, textvariable=num_rows, width=6,
                        validate='all', validatecommand=(vcmd, '%P'))
-entry_cols = ttk.Entry(frame_dimensions, textvariable=num_cols, width=6,
+entry_cols: ttk.Entry = ttk.Entry(frame_dimensions, textvariable=num_cols, width=6,
                        validate='all', validatecommand=(vcmd, '%P'))
 
-# The window layout
-label_inner_empty_edge = tk.Label(frame_layout, text='Inner edge')
-label_size_empty_edge = tk.Label(frame_layout, text='Empty edge size')
-label_corner_empty_wells = tk.Label(frame_layout, text='Empty corner size')
-label_horizontal_cell_lines = tk.Label(frame_layout, text='Number of horizontal lines')
-label_vertical_cell_lines = tk.Label(frame_layout, text='Number of vertical lines')
+# Layout section
+label_inner_empty_edge: tk.Label = tk.Label(frame_layout, text='Inner edge')
+label_size_empty_edge: tk.Label = tk.Label(frame_layout, text='Empty edge size')
+label_corner_empty_wells: tk.Label = tk.Label(frame_layout, text='Empty corner size')
+label_horizontal_cell_lines: tk.Label = tk.Label(frame_layout, text='Number of horizontal lines')
+label_vertical_cell_lines: tk.Label = tk.Label(frame_layout, text='Number of vertical lines')
 
-check_inner_empty_edge = ttk.Checkbutton(
+check_inner_empty_edge: ttk.Checkbutton = ttk.Checkbutton(
     frame_layout, variable=inner_empty_edge, onvalue=True, offvalue=False)
-entry_size_empty_edge = ttk.Entry(frame_layout, textvariable=size_empty_edge, width=6,
+entry_size_empty_edge: ttk.Entry = ttk.Entry(frame_layout, textvariable=size_empty_edge, width=6,
                                   validate='all', validatecommand=(vcmd, '%P'))
-entry_corner_empty_wells = ttk.Entry(frame_layout, textvariable=size_corner_empty_wells, width=6,
+entry_corner_empty_wells: ttk.Entry = ttk.Entry(frame_layout, textvariable=size_corner_empty_wells, width=6,
                                      validate='all', validatecommand=(vcmd, '%P'))
-entry_horizontal_cell_lines = ttk.Entry(frame_layout, textvariable=horizontal_cell_lines, width=6,
+entry_horizontal_cell_lines: ttk.Entry = ttk.Entry(frame_layout, textvariable=horizontal_cell_lines, width=6,
                                         validate='all', validatecommand=(vcmd, '%P'))
-entry_vertical_cell_lines = ttk.Entry(frame_layout, textvariable=vertical_cell_lines, width=6,
+entry_vertical_cell_lines: ttk.Entry = ttk.Entry(frame_layout, textvariable=vertical_cell_lines, width=6,
                                       validate='all', validatecommand=(vcmd, '%P'))
 
 # Materials section
-label_drugs = tk.Label(frame_materials, text='List of compounds \nwith concentrations')
-label_controls = tk.Label(frame_materials, text='List of controls \nwith concentrations:')
-entry_drugs = ttk.Entry(frame_materials, textvariable=drugs, width=33)
-entry_controls = ttk.Entry(frame_materials, textvariable=controls, width=33)
-help_drugs = tk.Label(frame_materials, text='?', relief='raised')
-help_controls = tk.Label(frame_materials, text='?', relief='raised')
+label_drugs: tk.Label = tk.Label(frame_materials, text='List of compounds \nwith concentrations')
+label_controls: tk.Label = tk.Label(frame_materials, text='List of controls \nwith concentrations:')
+entry_drugs: ttk.Entry = ttk.Entry(frame_materials, textvariable=drugs, width=33)
+entry_controls: ttk.Entry = ttk.Entry(frame_materials, textvariable=controls, width=33)
+help_drugs: tk.Label = tk.Label(frame_materials, text='?', relief='raised')
+help_controls: tk.Label = tk.Label(frame_materials, text='?', relief='raised')
 
 # UI placement
 frame_flags.grid(row=0, column=0, rowspan=2, columnspan=1, sticky="nw", padx=3, pady=3)

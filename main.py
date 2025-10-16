@@ -25,8 +25,9 @@ import os
 import sys
 import time
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog, messagebox
 from functools import partial
+from typing import Tuple
 
 import utility as ut
 
@@ -116,8 +117,8 @@ def load_csv() -> None:
 def run_minizinc() -> None:
     """Launch MiniZinc model and write results to CSV file."""
     if use_compd_flag.get() == 'COMPD':
-        solver_config = compound_mpc_path.get()
-        model_file = compound_path.get()
+        solver_config = compd_mpc_path.get()
+        model_file = compd_path.get()
     else:
         solver_config = plaid_mpc_path.get()
         model_file = plaid_path.get()
@@ -183,29 +184,29 @@ if sys.platform.startswith('win'):
 # Global variables
 # ------------------------------
 
-root = tk.Tk()
+root: tk.Tk = tk.Tk()
 root.title("MPLACE")
 root.resizable(False, False)
 
 # Close both the root window and WindowGenDZN properly
 root.protocol('WM_DELETE_WINDOW', on_close)
 
-dzn_file_path = tk.StringVar(root)
-csv_file_path = tk.StringVar(root)
+dzn_file_path: tk.StringVar = tk.StringVar(root)
+csv_file_path: tk.StringVar = tk.StringVar(root)
 dzn_file_path.set('')
 csv_file_path.set('')
 
-num_cols = tk.StringVar(root)
-num_rows = tk.StringVar(root)
+num_cols: tk.StringVar = tk.StringVar(root)
+num_rows: tk.StringVar = tk.StringVar(root)
 num_cols.set('16')
 num_rows.set('24')
 
-control_names = tk.StringVar(root)
+control_names: tk.StringVar = tk.StringVar(root)
 control_names.set('[]')
 
-vcmd = (root.register(ut.callback))
+vcmd: Tuple = (root.register(ut.callback))
 
-use_compd_flag = tk.StringVar(root)
+use_compd_flag: tk.StringVar = tk.StringVar(root)
 use_compd_flag.set('PLAID')
 
 try:
@@ -214,11 +215,11 @@ except FileNotFoundError as e:
     tk.messagebox.showerror("Configuration Error", str(e))
     sys.exit(1)
 
-minizinc_path = tk.StringVar(root)
-plaid_path = tk.StringVar(root)
-compd_path = tk.StringVar(root)
-plaid_mpc_path = tk.StringVar(root)
-compd_mpc_path = tk.StringVar(root)
+minizinc_path: tk.StringVar = tk.StringVar(root)
+plaid_path: tk.StringVar = tk.StringVar(root)
+compd_path: tk.StringVar = tk.StringVar(root)
+plaid_mpc_path: tk.StringVar = tk.StringVar(root)
+compd_mpc_path: tk.StringVar = tk.StringVar(root)
 
 minizinc_path.set(minizinc_path_s)
 plaid_path.set(plaid_path_s)
@@ -232,13 +233,13 @@ compd_mpc_path.set(compd_mpc_path_s)
 # ------------------------------
 
 # Frame 1: DZN file generation/loading
-frame_dzn = ttk.LabelFrame(root, text='Step 1 - Generate OR load the *.dzn file:')
+frame_dzn: ttk.LabelFrame = ttk.LabelFrame(root, text='Step 1 - Generate OR load the *.dzn file:')
 frame_dzn.pack(expand=True, fill="both", padx=10, pady=10)
-button_generate_dzn = ttk.Button(
+button_generate_dzn: ttk.Button = ttk.Button(
     frame_dzn, width=13, state=tk.NORMAL, text='Generate *.dzn file')
-button_load_dzn = ttk.Button(
+button_load_dzn: ttk.Button = ttk.Button(
     frame_dzn, width=13, state=tk.NORMAL, text='Load *.dzn file')
-label_dzn_loaded = tk.Label(frame_dzn, text='No *.dzn file is loaded')
+label_dzn_loaded: tk.Label = tk.Label(frame_dzn, text='No *.dzn file is loaded')
 
 frame_dzn.columnconfigure(0, weight=1)
 frame_dzn.columnconfigure(1, weight=1)
@@ -248,15 +249,15 @@ button_load_dzn.grid(row=0, column=1, columnspan=1, sticky="ew")
 label_dzn_loaded.grid(row=1, column=0, columnspan=2, sticky="w")
 
 # Frame 2: CSV file generation/loading
-frame_csv = ttk.LabelFrame(root, text='Step 2 - Generate OR load the layout (*.csv):')
+frame_csv: ttk.LabelFrame = ttk.LabelFrame(root, text='Step 2 - Generate OR load the layout (*.csv):')
 frame_csv.pack(expand=True, fill="both", padx=10, pady=10)
-button_run_minizinc = ttk.Button(frame_csv, width=13, state=tk.DISABLED, text='Run a model')
-button_load_csv = ttk.Button(
+button_run_minizinc: ttk.Button = ttk.Button(frame_csv, width=13, state=tk.DISABLED, text='Run a model')
+button_load_csv: ttk.Button = ttk.Button(
     frame_csv, width=13, state=tk.NORMAL, text='Load *.csv file')
-label_csv_loaded = tk.Label(frame_csv, text='No *.csv file is loaded')
-radio_plaid = ttk.Radiobutton(frame_csv, text='PLAID',
+label_csv_loaded: tk.Label = tk.Label(frame_csv, text='No *.csv file is loaded')
+radio_plaid: ttk.Radiobutton = ttk.Radiobutton(frame_csv, text='PLAID',
                               value='PLAID', variable=use_compd_flag)
-radio_compd = ttk.Radiobutton(frame_csv, text='Other',
+radio_compd: ttk.Radiobutton = ttk.Radiobutton(frame_csv, text='Other',
                               value='COMPD', variable=use_compd_flag)
 
 frame_csv.columnconfigure(0, weight=1)
@@ -269,17 +270,17 @@ button_load_csv.grid(row=1, column=1, columnspan=1, sticky="ew")
 label_csv_loaded.grid(row=2, column=0, columnspan=2, sticky="w")
 
 # Frame 3: Visualization
-frame_matplotlib = ttk.LabelFrame(root, text='Step 3 - Visualize the layout (*.csv):')
+frame_matplotlib: ttk.LabelFrame = ttk.LabelFrame(root, text='Step 3 - Visualize the layout (*.csv):')
 frame_matplotlib.pack(expand=True, fill="both", padx=10, pady=10)
-label_rows = tk.Label(frame_matplotlib, text='nb rows:')
-entry_rows = ttk.Entry(frame_matplotlib, textvariable=num_rows, width=6,
+label_rows: tk.Label = tk.Label(frame_matplotlib, text='nb rows:')
+entry_rows: ttk.Entry = ttk.Entry(frame_matplotlib, textvariable=num_rows, width=6,
                        validate='all', validatecommand=(vcmd, '%P'))
-label_cols = tk.Label(frame_matplotlib, text='nb cols:')
-entry_cols = ttk.Entry(frame_matplotlib, textvariable=num_cols, width=6,
+label_cols: tk.Label = tk.Label(frame_matplotlib, text='nb cols:')
+entry_cols: ttk.Entry = ttk.Entry(frame_matplotlib, textvariable=num_cols, width=6,
                        validate='all', validatecommand=(vcmd, '%P'))
-button_visualize = ttk.Button(
+button_visualize: ttk.Button = ttk.Button(
     frame_matplotlib, width=13, state=tk.NORMAL, text='Visualize *.csv')
-button_reset_all = ttk.Button(frame_matplotlib, width=13, text='Reset all')
+button_reset_all: ttk.Button = ttk.Button(frame_matplotlib, width=13, text='Reset all')
 
 frame_matplotlib.columnconfigure(0, weight=1)
 frame_matplotlib.columnconfigure(1, weight=1)

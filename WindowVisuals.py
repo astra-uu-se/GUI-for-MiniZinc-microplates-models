@@ -32,12 +32,13 @@ import tkinter as tk
 from tkinter import ttk, VERTICAL, RIGHT, Y, LEFT, BOTH
 
 import ast
+from typing import List, Dict, Sequence, Union
 
 from utility import transform_coordinate, read_csv_file, transform_concentrations_to_alphas, to_number_if_possible
 
 
-def draw_plates(parent, figure_name_template: str, text_array: list, 
-                num_rows: int = 16, num_cols: int = 24, control_names: list = []) -> None:
+def draw_plates(parent: tk.Widget, figure_name_template: str, text_array: Sequence[str], 
+                num_rows: int = 16, num_cols: int = 24, control_names: Sequence[str] = ()) -> None:
     """Load CSV data, analyze it, split into layouts, and draw plates with material scales.
     
     Args:
@@ -48,8 +49,9 @@ def draw_plates(parent, figure_name_template: str, text_array: list,
         num_cols: Number of columns in microplate  
         control_names: List of control material names
     """
-    layouts_dict = {}
-    concentrations_list = {}
+    layouts_dict: Dict[str, List[List[str]]] = {}
+    concentrations_list: Dict[str, List[Union[str, float, int]]] = {}
+    
     for line in text_array:
         if line == '\n':  # happens on Windows machines
             continue
@@ -77,7 +79,7 @@ def draw_plates(parent, figure_name_template: str, text_array: list,
     # Generate colors for materials using tab20 colormap
     colormap = pyplot.get_cmap('tab20')
     color_index = 0
-    material_colors = {}
+    material_colors: Dict[str, np.ndarray] = {}
     for material in sorted(concentrations_list.keys()):
         material_colors[material] = np.array(colormap(color_index)[:3])
         color_index += 1
@@ -118,7 +120,7 @@ def draw_plates(parent, figure_name_template: str, text_array: list,
     tab_control2.grid(row=1, column=1, padx=10, pady=2)
 
 
-def update_scroll_region(event, canvas) -> None:
+def update_scroll_region(event: tk.Event, canvas: tk.Canvas) -> None:
     """Update canvas scroll region when content changes.
     
     Args:
@@ -128,9 +130,9 @@ def update_scroll_region(event, canvas) -> None:
     canvas.configure(scrollregion=canvas.bbox("all"))
 
 
-def draw_plate(parent, figure_name_template: str, layout: str, layout_array: list,
-               material_colors: dict, concentrations_list: dict,
-               num_rows: int = 16, num_cols: int = 24, control_names: list = []) -> None:
+def draw_plate(parent: ttk.Notebook, figure_name_template: str, layout: str, layout_array: Sequence[Sequence[str]],
+               material_colors: Dict[str, np.ndarray], concentrations_list: Dict[str, Sequence[Union[str, float, int]]],
+               num_rows: int = 16, num_cols: int = 24, control_names: Sequence[str] = ()) -> None:
     """Draw a single microplate layout visualization.
     
     Args:
@@ -161,7 +163,7 @@ def draw_plate(parent, figure_name_template: str, layout: str, layout_array: lis
     ax.set_aspect('equal')
 
     # Group wells by material
-    materials = {}
+    materials: Dict[str, List[List[str]]] = {}
     for line in layout_array:
         if line[1] in materials:
             materials[line[1]].append([line[0]] + line[1:])
@@ -178,9 +180,10 @@ def draw_plate(parent, figure_name_template: str, layout: str, layout_array: lis
 
         alpha_values = transform_concentrations_to_alphas(concentrations_list[material])
 
-        x_coords = []
-        y_coords = []
-        alphas = []
+        x_coords: List[float] = []
+        y_coords: List[float] = []
+        alphas: List[float] = []
+        
         for well in materials[material]:
             if is_switched:
                 [y_coord, x_coord] = transform_coordinate(well[0])
@@ -216,8 +219,8 @@ def draw_plate(parent, figure_name_template: str, layout: str, layout_array: lis
     tab.canvas_ref = canvas
 
 
-def draw_material_scale(parent, material_name: str, color: np.ndarray, 
-                        concentrations: list) -> None:
+def draw_material_scale(parent: tk.Widget, material_name: str, color: np.ndarray, 
+                        concentrations: Sequence[Union[str, float, int]]) -> None:
     """Draw a concentration scale for a specific material.
     
     Args:
@@ -281,8 +284,8 @@ def visualize(file_path: str, figure_name_template: str, rows: str, cols: str,
         finally:
             window.destroy()
 
-    window = tk.Tk()
-    quit_button = ttk.Button(window, text='close window')
+    window: tk.Tk = tk.Tk()
+    quit_button: ttk.Button = ttk.Button(window, text='close window')
     quit_button.grid(row=0, column=0, columnspan=2)
     quit_button.configure(command=cleanup_and_close)
     window.title("Visualize GUI")
@@ -300,7 +303,7 @@ def visualize(file_path: str, figure_name_template: str, rows: str, cols: str,
         cleanup_and_close()
 
 
-def cleanup_canvas_widgets(widget) -> None:
+def cleanup_canvas_widgets(widget: tk.Misc) -> None:
     """Recursively cleanup matplotlib canvases in widget tree.
     
     Args:

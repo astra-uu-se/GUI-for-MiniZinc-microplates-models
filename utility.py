@@ -29,15 +29,16 @@ import ast
 import re
 import numpy as np
 import tkinter as tk
+from typing import List, Dict, Tuple, Union, Sequence
 
 # Constants for coordinate transformation
-LETTERS_CAPITAL = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K",
-                   "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
-LETTERS_LOWERCASE = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
-                     "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
+LETTERS_CAPITAL: List[str] = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K",
+                              "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+LETTERS_LOWERCASE: List[str] = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
+                                "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
 
 
-def transform_coordinate(well: str) -> list[int]:
+def transform_coordinate(well: str) -> List[int]:
     """Transform coordinates from standard csv-file format.
     
     Args:
@@ -62,7 +63,7 @@ def transform_coordinate(well: str) -> list[int]:
             return [row, col]
 
 
-def read_csv_file(file_path: str) -> list[str]:
+def read_csv_file(file_path: str) -> List[str]:
     """Read CSV file and return all lines except header.
     
     Args:
@@ -82,7 +83,7 @@ def read_csv_file(file_path: str) -> list[str]:
         raise FileNotFoundError(f"Could not read CSV file: {file_path}") from e
 
 
-def scan_dzn(file_path: str) -> tuple[str, str, str]:
+def scan_dzn(file_path: str) -> Tuple[str, str, str]:
     """Scan DZN file and extract parameters.
     
     Args:
@@ -147,7 +148,7 @@ def retrieve_dzn_param(text: str, param_string: str) -> str:
     return param_res
 
 
-def transform_concentrations_to_alphas(concentration_list: list) -> dict:
+def transform_concentrations_to_alphas(concentration_list: Sequence[Union[str, float, int]]) -> Dict[Union[str, float, int], float]:
     """Transform concentration list to alpha values for visualization.
     
     Args:
@@ -172,7 +173,7 @@ def transform_concentrations_to_alphas(concentration_list: list) -> dict:
     return alphas
 
 
-def to_number_if_possible(value: str):
+def to_number_if_possible(value: str) -> Union[int, float, str]:
     """Convert string to number if possible, otherwise return original value.
     
     Args:
@@ -190,7 +191,7 @@ def to_number_if_possible(value: str):
             return value
 
 
-def read_paths_ini_file() -> tuple[str, str, str, str, str]:
+def read_paths_ini_file() -> Tuple[str, str, str, str, str]:
     """Read and parse paths.ini configuration file.
     
     Returns:
@@ -264,7 +265,7 @@ def run_cmd(minizinc_path: str, solver_config: str, model_file: str, data_file: 
     return output
 
 
-def extract_csv_text(text: str) -> list[str]:
+def extract_csv_text(text: str) -> List[str]:
     """Extract CSV content from MiniZinc output.
     
     Args:
@@ -291,7 +292,8 @@ def parse_control_string(control_string: str) -> str:
         control_string: String containing control definitions
         
     Returns:
-        List of parsed control names, or empty list if parsing fails
+        Stringified list of parsed control names, or '[]' if parsing fails.
+        Use ast.literal_eval() to convert back to a Python list.
     """
     control_names = []
     for section in control_string.split('++'):
@@ -336,7 +338,7 @@ def callback(P: str) -> bool:
     return str.isdigit(P) or P == ""
 
 
-def path_show(path: str, label_object) -> None:
+def path_show(path: str, label_object: tk.Label) -> None:
     """Display truncated path in label widget.
     
     Args:
@@ -356,16 +358,17 @@ class ToolTip(object):
     Source: squareRoot17, https://stackoverflow.com/questions/20399243/display-message-when-hovering-over-something-with-mouse-cursor-in-python
     """
     
-    def __init__(self, widget):
+    def __init__(self, widget: tk.Widget) -> None:
         """Initialize tooltip for widget.
         
         Args:
             widget: Tkinter widget to attach tooltip to
         """
         self.widget = widget
-        self.tipwindow = None
-        self.id = None
-        self.x = self.y = 0
+        self.tipwindow: tk.Toplevel = None
+        self.id: str = None
+        self.x: int = 0
+        self.y: int = 0
 
     def showtip(self, text: str) -> None:
         """Display text in tooltip window.
@@ -395,7 +398,7 @@ class ToolTip(object):
             tw.destroy()
 
 
-def CreateToolTip(widget, text: str) -> None:
+def CreateToolTip(widget: tk.Widget, text: str) -> None:
     """Create a tooltip for the given widget.
     
     Args:
