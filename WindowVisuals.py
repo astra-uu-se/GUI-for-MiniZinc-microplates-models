@@ -27,6 +27,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 import numpy as np
+import logging
 
 import tkinter as tk
 from tkinter import ttk, VERTICAL, RIGHT, Y, LEFT, BOTH
@@ -38,6 +39,9 @@ from utility import transform_coordinate, read_csv_file, transform_concentration
 
 # Cache colormap at module level for performance optimization
 COLORMAP_TAB20 = pyplot.get_cmap('tab20')
+
+# Configure logging for visualization module
+logger = logging.getLogger(__name__)
 
 
 def draw_plates(parent: tk.Widget, figure_name_template: str, text_array: Sequence[str], 
@@ -78,11 +82,18 @@ def draw_plates(parent: tk.Widget, figure_name_template: str, text_array: Sequen
             # Handle mixed types by converting to strings and sorting
             concentrations_list[material] = [str(x) for x in concentrations_list[material]]
             concentrations_list[material] = sorted(concentrations_list[material])
+            logger.warning(f"Mixed-type concentrations for {material}, converted to strings")
+
+    # Log data processing summary
+    total_wells = sum(len(layouts_dict[layout]) for layout in layouts_dict)
+    print(f"Processing {len(concentrations_list)} materials, {total_wells} wells across {len(layouts_dict)} layouts")
+    logger.info(f"Visualization data: {len(concentrations_list)} materials, {total_wells} wells, {len(layouts_dict)} layouts")
 
     # Precompute alpha mappings once for all materials for performance optimization
     alpha_mappings: Dict[str, Dict[Union[str, float, int], float]] = {}
     for material in concentrations_list:
         alpha_mappings[material] = transform_concentrations_to_alphas(concentrations_list[material])
+    logger.debug(f"Precomputed alpha mappings for {len(alpha_mappings)} materials")
 
     # Generate colors for materials using cached tab20 colormap
     color_index = 0
@@ -214,8 +225,11 @@ def draw_plate(parent: ttk.Notebook, figure_name_template: str, layout: str, lay
         ax.set_xlim(0, num_rows)
         ax.set_ylim(0, num_cols)
 
-        # Save figure before embedding
-        fig.savefig(figure_name_template + layout + '.png')
+        # Save figure with user-visible path confirmation
+        png_path = figure_name_template + layout + '.png'
+        fig.savefig(png_path)
+        print(f"Saved visualization: {png_path}")
+        logger.info(f"PNG saved: {png_path}")
 
         # Create tab and canvas
         tab = ttk.Frame(parent)
@@ -226,8 +240,10 @@ def draw_plate(parent: ttk.Notebook, figure_name_template: str, layout: str, lay
 
         # Store canvas reference for cleanup
         tab.canvas_ref = canvas
+        logger.debug(f"Matplotlib canvas created for layout: {layout}")
 
-    except Exception:
+    except Exception as e:
+        logger.error(f"Failed to draw plate {layout}: {e}")
         # Ensure figure resources are freed if plotting fails
         try:
             pyplot.close(fig)
@@ -279,8 +295,10 @@ def draw_material_scale(parent: tk.Widget, material_name: str, color: np.ndarray
 
         # Store canvas reference for cleanup
         tab2.canvas_ref = canvas
+        logger.debug(f"Material scale created: {material_name}, {len(concentrations)} concentrations")
 
-    except Exception:
+    except Exception as e:
+        logger.error(f"Failed to create material scale for {material_name}: {e}")
         # Ensure figure resources are freed if scale creation fails
         try:
             pyplot.close(fig)
@@ -306,23 +324,33 @@ def visualize(file_path: str, figure_name_template: str, rows: str, cols: str,
             # Find and cleanup all canvas references
             cleanup_canvas_widgets(window)
             pyplot.close('all')  # Close any remaining pyplot figures
+            logger.debug("Matplotlib cleanup completed")
         except Exception as e:
             print(f"Warning during cleanup: {e}")
+            logger.warning(f"Cleanup warning: {e}")
         finally:
+            logger.info("Visualization window closed")
             window.destroy()
 
+    logger.info("Opening visualization window")
     window: tk.Tk = tk.Tk()
     window.title("Visualize GUI")
     window.protocol('WM_DELETE_WINDOW', cleanup_and_close)  # Handle window X button
+
+    # Add close button
+    quit_button: ttk.Button = ttk.Button(window, text='close window')
+    quit_button.grid(row=0, column=0, columnspan=2)
+    quit_button.configure(command=cleanup_and_close)
 
     try:
         draw_plates(window, figure_name_template, read_csv_file(file_path),
                     num_rows=int(rows), num_cols=int(cols), 
                     control_names=ast.literal_eval(control_names))
         window.geometry('+%d+%d' % (10, 10))
+        logger.debug("Visualization window geometry set, entering mainloop")
         window.mainloop()
     except Exception as e:
-        print(read_csv_file(file_path))
+        logger.error(f"Visualization error: {e}")
         print(f"Error in visualization: {e}")
         cleanup_and_close()
 
@@ -341,6 +369,7 @@ def cleanup_canvas_widgets(widget: tk.Misc) -> None:
             # Close the figure explicitly to free memory from backend
             pyplot.close(fig)
             del canvas
+            logger.debug("Canvas and figure cleaned up")
         except (AttributeError, tk.TclError):
             # Canvas might already be destroyed
             pass

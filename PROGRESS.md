@@ -21,13 +21,13 @@ This document tracks the progress of key tasks in the MPLACE project.
 | Low      | Precompute Alpha Mappings        | Done           | Precompute transform_concentrations_to_alphas once per material in draw_plates() and pass to draw_plate() and draw_material_scale(); eliminates repeated alpha calculation across layouts and significantly improves visualization performance for multi-layout datasets. |
 | Low      | Replace Tab20 Colormap Limitation | Not done      | Current 20-color limit causes repetition with many materials; implement extended colormap with 50+ distinct colors for better material differentiation. |
 | Low      | Optimize Matplotlib Performance  | Done           | Cached pyplot.get_cmap('tab20') at module level as COLORMAP_TAB20 in WindowVisuals.py; eliminates repeated colormap lookups and improves rendering performance. |
+| Low      | Implement Logging Framework     | Done           | Comprehensive logging system with dual approach: preserved print() statements for user-visible feedback while adding structured logging for debugging. PNG save paths now logged and printed for user visibility. Log file (mplace.log) captures all operations with timestamps. Logging levels: DEBUG for technical details, INFO for major operations, WARNING for recoverable issues, ERROR for failures. |
 | Low      | Add Progress Indicators          | Not done       | Long-running MiniZinc operations show minimal feedback; add progress bars and status updates for better user experience. |
 | Low      | Improve Error Diagnostics        | Not done       | MiniZinc failures could provide more specific diagnostic information; enhance subprocess error handling with context-specific guidance. |
 | Low      | Add Bounds Checking             | Not done       | Plate dimensions and layout parameters lack validation against reasonable limits; add input validation with helpful error messages. |
 | Low      | Enhance Documentation           | Not done       | Complex algorithms like parse_control_string need more detailed inline comments; add concrete usage examples in docstrings. |
 | Low      | Add Unit Test Coverage          | Not done       | No apparent test coverage for utility functions and data processing; create test suite for core functionality. |
 | Low      | Add Integration Tests           | Not done       | No end-to-end testing of DZN → MiniZinc → CSV → Visualization workflow; add comprehensive integration test suite. |
-| Low      | Implement Logging Framework     | Not done       | Replace print() statements with proper logging framework for better debugging and production use. |
 | Low      | Add Keyboard Shortcuts          | Not done       | No keyboard shortcuts for common operations; add standard shortcuts (Ctrl+O for open, etc.) for improved productivity. |
 | Low      | Create Recent Files Menu        | Not done       | No quick access to recently used DZN/CSV files; add recent files functionality for better workflow efficiency. |
 | Low      | Add Batch Processing Support    | Not done       | No support for processing multiple files in sequence; add batch processing capabilities for research workflows. |
@@ -47,4 +47,4 @@ This progress tracking file should be updated after each significant change or b
 
 ---
 
-*Last updated: October 16, 2025 (completed alpha mappings precomputation optimization)*
+*Last updated: October 16, 2025 (implemented comprehensive logging framework with dual print+log approach)*

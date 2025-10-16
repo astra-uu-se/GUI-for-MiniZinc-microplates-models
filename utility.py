@@ -27,10 +27,15 @@ import subprocess
 import sys
 import ast
 import re
+import time
+import logging
 from functools import lru_cache
 import numpy as np
 import tkinter as tk
 from typing import List, Dict, Tuple, Union, Sequence
+
+# Configure logging for utility module
+logger = logging.getLogger(__name__)
 
 # Constants for coordinate transformation
 LETTERS_CAPITAL: List[str] = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K",
@@ -65,6 +70,7 @@ def transform_coordinate(well: str) -> List[int]:
             row = LETTERS_LOWERCASE.index(symbol) + (row + 1) * len(LETTERS_LOWERCASE)
         else:
             col = int(well[i:]) - 1
+            logger.debug(f"Coordinate transform: {well} -> [{row}, {col}]")
             return [row, col]
 
 
@@ -83,8 +89,11 @@ def read_csv_file(file_path: str) -> List[str]:
     try:
         with open(file_path, 'r') as file:
             layout_text_array = file.readlines()
+        line_count = len(layout_text_array) - 1  # Exclude header
+        logger.info(f"CSV file loaded: {file_path}, {line_count} data lines")
         return layout_text_array[1:]  # Remove header
     except (FileNotFoundError, IOError) as e:
+        logger.error(f"Failed to read CSV file: {file_path}, error: {e}")
         raise FileNotFoundError(f"Could not read CSV file: {file_path}") from e
 
 
@@ -106,10 +115,13 @@ def scan_dzn(file_path: str) -> Tuple[str, str, str]:
     ctrs_str = 'control_names'
     nb_ctrs_str = 'num_controls'
 
+    logger.debug(f"Scanning DZN file: {file_path}")
+    
     try:
         with open(file_path, 'r') as file:
             dzn_text = file.read()
     except (FileNotFoundError, IOError) as e:
+        logger.error(f"Cannot read DZN file: {file_path}, error: {e}")
         raise FileNotFoundError(f"Could not read DZN file: {file_path}") from e
 
     # Remove spaces, tabs and newlines to ensure a more robust scan
@@ -123,8 +135,11 @@ def scan_dzn(file_path: str) -> Tuple[str, str, str]:
     ctrs = ctrs.replace(nb_ctrs_str, nb_ctrs)
 
     if rows.isnumeric() and cols.isnumeric():
-        return cols, rows, str(parse_control_string(ctrs))
+        controls = str(parse_control_string(ctrs))
+        logger.info(f"DZN parsed: {cols}x{rows} plate, controls: {controls}")
+        return cols, rows, controls
     else:
+        logger.error(f"Invalid DZN file - non-numeric dimensions: rows={rows}, cols={cols}")
         raise ValueError('Corrupt dzn file - invalid numeric values')
 
 
@@ -145,10 +160,12 @@ def retrieve_dzn_param(text: str, param_string: str) -> str:
     pos = text.find(param_string)
 
     if pos == -1:
+        logger.error(f"DZN parameter not found: {param_string}")
         raise ValueError(f'Cannot find dzn parameter ({param_string})')
 
     pos += len(param_string)
     param_res = text[pos:text.find(';', pos)]
+    logger.debug(f"DZN parameter extracted: {param_string[:-1]} = {param_res}")
 
     return param_res
 
@@ -175,6 +192,7 @@ def transform_concentrations_to_alphas(concentration_list: Sequence[Union[str, f
     for i in range(len(concentration_list)):
         alphas[concentration_list[i]] = min(
             [1, min_alpha + (max_alpha - min_alpha) * i / (num_alpha - 1)])
+    logger.debug(f"Alpha mapping generated for {num_alpha} concentrations")
     return alphas
 
 
@@ -205,10 +223,12 @@ def read_paths_ini_file() -> Tuple[str, str, str, str, str]:
     Raises:
         FileNotFoundError: If paths.ini file cannot be read
     """
+    logger.debug("Loading configuration from paths.ini")
     try:
         with open('paths.ini', 'r') as file:
             paths_array = file.readlines()
     except (FileNotFoundError, IOError) as e:
+        logger.error(f"Cannot read paths.ini file: {e}")
         raise FileNotFoundError("Could not read paths.ini file. Please ensure it exists and is readable.") from e
     
     # Initialize variables with defaults
@@ -227,6 +247,7 @@ def read_paths_ini_file() -> Tuple[str, str, str, str, str]:
         elif line_clean.startswith('compd_mpc_path = '):
             compd_mpc_path = line_clean[17:].strip('"\'')
     
+    logger.info("Configuration loaded successfully from paths.ini")
     return minizinc_path, plaid_path, compd_path, plaid_mpc_path, compd_mpc_path
 
 
@@ -250,7 +271,11 @@ def run_cmd(minizinc_path: str, solver_config: str, model_file: str, data_file: 
     else:
         cmd = [minizinc_path + ' --param-file-no-push ' +
                solver_config + ' ' + model_file + ' ' + data_file]
+    
     print('command:', cmd)
+    logger.info(f"Executing MiniZinc: {' '.join(cmd) if isinstance(cmd, list) else cmd}")
+    
+    start_time = time.time()
     
     try:
         process = subprocess.Popen(
@@ -260,12 +285,20 @@ def run_cmd(minizinc_path: str, solver_config: str, model_file: str, data_file: 
         errors = errors.decode('utf-8').strip()
         process.kill()
     except (subprocess.SubprocessError, OSError) as e:
+        logger.error(f"MiniZinc execution failed: {e}")
         raise RuntimeError(f"Failed to execute MiniZinc command: {e}") from e
 
-    print(errors)  # to help the user see if there are any warnings
-    print(output)  # to help the user see if there are any warnings
+    elapsed = time.time() - start_time
+    
+    if errors:
+        print(errors)  # User sees warnings/errors
+        logger.warning(f"MiniZinc stderr: {errors}")
+    if output:
+        print(output)  # User sees output
+        logger.debug(f"MiniZinc stdout: {output}")
 
-    print('Finished running MiniZinc!')
+    print(f'MiniZinc completed in {elapsed:.1f} seconds')
+    logger.info(f"MiniZinc execution completed in {elapsed:.1f} seconds")
 
     return output
 
@@ -287,7 +320,10 @@ def extract_csv_text(text: str) -> List[str]:
         if lines[i][:17] == 'criteria function' or lines[i][:1] == '%' or lines[i] == '----------' or lines[i] == 'finished':
             if e <= s:
                 e = i
-    return [line + '\n' for line in lines[s:e]]
+    
+    extracted_lines = [line + '\n' for line in lines[s:e]]
+    logger.debug(f"Extracted {len(extracted_lines)} CSV lines from MiniZinc output")
+    return extracted_lines
 
 
 def parse_control_string(control_string: str) -> str:
@@ -301,11 +337,14 @@ def parse_control_string(control_string: str) -> str:
         Use ast.literal_eval() to convert back to a Python list.
     """
     control_names = []
+    logger.debug(f"Parsing control string: {control_string[:50]}...")
+    
     for section in control_string.split('++'):
         if section.find('..') == -1:
             try:
                 control_names.extend(ast.literal_eval(section))
             except (ValueError, SyntaxError):
+                logger.warning(f"Failed to parse control section: {section}")
                 return '[]'
         else:
             try:
@@ -327,7 +366,10 @@ def parse_control_string(control_string: str) -> str:
                     control_names.append(
                         section[1:pos_index_s] + str(i) + section[pos_index_e + 1:pos_iin-1])
             except (ValueError, IndexError):
+                logger.warning(f"Failed to parse complex control section: {section}")
                 return '[]'
+    
+    logger.debug(f"Parsed {len(control_names)} control names")
     return str(control_names)
 
 
@@ -354,7 +396,9 @@ def path_show(path: str, label_object: tk.Label) -> None:
         prefix = '...'
     else:
         prefix = ''
-    label_object.config(text='File loaded: ' + prefix + path[-20:])
+    display_text = 'File loaded: ' + prefix + path[-20:]
+    label_object.config(text=display_text)
+    logger.debug(f"UI updated with path: {display_text}")
 
 
 class ToolTip(object):

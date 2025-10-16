@@ -24,6 +24,7 @@
 import os
 import sys
 import time
+import logging
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from functools import partial
@@ -33,6 +34,17 @@ import utility as ut
 
 import WindowVisuals as wv
 import WindowGenDZN as wd
+
+# Configure logging for main application
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('mplace.log'),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
 
 
 # ------------------------------
@@ -47,6 +59,7 @@ def update_csv_path(path: str) -> None:
     """
     ut.path_show(path, label_csv_loaded)
     csv_file_path.set(path)
+    logger.info(f"CSV file path updated: {path}")
 
 
 def reset_all() -> None:
@@ -60,11 +73,13 @@ def reset_all() -> None:
     label_dzn_loaded.config(text='No *.dzn file is loaded')
     label_csv_loaded.config(text='No *.csv file is loaded')
     button_run_minizinc.config(state=tk.DISABLED)
+    logger.info("Application state reset to defaults")
 
 
 def generate_dzn() -> None:
     """Show the DZN file generation window."""
     wd.gen_dzn_show()
+    logger.debug("DZN generation window opened")
 
 
 def connect_generate_dzn() -> None:
@@ -78,6 +93,7 @@ def connect_generate_dzn() -> None:
     wd.num_rows_main = num_rows
     wd.num_cols_main = num_cols
     wd.control_names = control_names
+    logger.debug("Window variables connected between main and DZN generation")
 
 
 def load_dzn() -> None:
@@ -96,8 +112,12 @@ def load_dzn() -> None:
             num_rows.set(rows)
             control_names.set(controls_names_text)
 
+            print(f"Loaded DZN: {rows}x{cols} plate, controls: {controls_names_text}")
+            logger.info(f"DZN file loaded successfully: {path}")
+
             button_run_minizinc.config(state=tk.NORMAL)
         except (FileNotFoundError, ValueError) as e:
+            logger.error(f"DZN loading failed: {path}, error: {e}")
             tk.messagebox.showerror("Error", f"Failed to load DZN file: {str(e)}")
 
 
@@ -110,7 +130,13 @@ def load_csv() -> None:
     if path != '':
         try:
             update_csv_path(path)
+            # Count lines for user info
+            with open(path, 'r') as f:
+                line_count = sum(1 for _ in f) - 1  # Exclude header
+            print(f"Loaded CSV: {line_count} layout entries")
+            logger.info(f"CSV file loaded: {path}, {line_count} entries")
         except Exception as e:
+            logger.error(f"CSV loading failed: {path}, error: {e}")
             tk.messagebox.showerror("Error", f"Failed to load CSV file: {str(e)}")
 
 
@@ -122,6 +148,9 @@ def run_minizinc() -> None:
     else:
         solver_config = plaid_mpc_path.get()
         model_file = plaid_path.get()
+
+    print(f"Running {use_compd_flag.get()} model...")
+    logger.info(f"Starting MiniZinc execution with {use_compd_flag.get()} model")
 
     # Store original label text to restore on failure
     original_label_text = label_csv_loaded.cget("text")
@@ -136,11 +165,13 @@ def run_minizinc() -> None:
         path = tk.filedialog.asksaveasfilename(
             defaultextension=".csv", filetypes=[('csv files', '*.csv')])
 
-        print(path)
+        print(f"Saving results to: {path}")
+        logger.info(f"User selected CSV save path: {path}")
 
         if path is None or path == '':
             # User cancelled - restore original state
             label_csv_loaded.config(text=original_label_text)
+            logger.info("User cancelled CSV save - operation aborted")
             return
 
         # Use context manager for file writing
@@ -148,7 +179,11 @@ def run_minizinc() -> None:
             with open(path, 'w') as csv_file:
                 csv_text = ut.extract_csv_text(cmd_to_str)
                 csv_file.writelines(csv_text)
+            
+            print(f"CSV saved successfully: {path}")
+            logger.info(f"CSV file saved: {path}, {len(csv_text)} lines")
         except (IOError, OSError) as e:
+            logger.error(f"CSV write failed: {path}, error: {e}")
             tk.messagebox.showerror("Error", f"Failed to write CSV file: {str(e)}")
             label_csv_loaded.config(text='Error writing file')
             return
@@ -158,6 +193,7 @@ def run_minizinc() -> None:
         
     except (RuntimeError, FileNotFoundError) as e:
         label_csv_loaded.config(text='Error occurred')
+        logger.error(f"MiniZinc execution failed: {e}")
         tk.messagebox.showerror("Error", f"Failed to run MiniZinc: {str(e)}")
 
 
@@ -166,25 +202,34 @@ def visualize() -> None:
     if csv_file_path.get() != '':
         try:
             figure_name_template = csv_file_path.get()[:-3] + '_' + use_compd_flag.get() + '_'
+            print(f"Opening visualization for: {csv_file_path.get()}")
+            logger.info(f"Starting visualization: CSV={csv_file_path.get()}, template={figure_name_template}")
+            
             wv.visualize(csv_file_path.get(), figure_name_template,
                          num_rows.get(), num_cols.get(), control_names.get())
         except Exception as e:
+            logger.error(f"Visualization failed: {e}")
             tk.messagebox.showerror("Error", f"Failed to visualize: {str(e)}")
 
 
 def on_close() -> None:
     """Handle window close event, ensuring all windows are properly destroyed."""
+    logger.info("Application shutdown initiated")
     try:
         wd.window.destroy()
     except (AttributeError, tk.TclError):
         # Window might not exist or already be destroyed
         pass
     finally:
+        logger.info("Application shutdown completed")
         root.destroy()
 
 
 if sys.platform.startswith('win'):
     os.system('chcp 65001')  # Change code page to UTF-8
+
+# Log application startup
+logger.info("MPLACE application starting up")
 
 # ------------------------------
 # Global variables
@@ -217,7 +262,10 @@ use_compd_flag.set('PLAID')
 
 try:
     minizinc_path_s, plaid_path_s, compd_path_s, plaid_mpc_path_s, compd_mpc_path_s = ut.read_paths_ini_file()
+    print("Configuration loaded successfully")
+    logger.info("Configuration loaded from paths.ini")
 except FileNotFoundError as e:
+    logger.critical(f"Configuration error: {e}")
     tk.messagebox.showerror("Configuration Error", str(e))
     sys.exit(1)
 
@@ -311,4 +359,5 @@ button_reset_all.configure(command=lambda: reset_all())
 connect_generate_dzn()
 reset_all()
 
+logger.info("MPLACE GUI initialized, entering main loop")
 root.mainloop()

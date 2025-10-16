@@ -24,29 +24,38 @@
 import tkinter as tk
 from tkinter import ttk, VERTICAL, RIGHT, Y, LEFT, BOTH, SOLID, filedialog, messagebox
 from typing import Dict, Any, List, Tuple
+import logging
 
 import ast
 import re
 
 import utility as ut
 
+# Configure logging for DZN generation module
+logger = logging.getLogger(__name__)
+
 
 def generate_dzn_file() -> None:
     """Generate DZN file from user input parameters."""
+    logger.info("Starting DZN file generation")
+    
     # Step 0 - validate input data
     if (num_cols.get() == '' or num_rows.get() == '' or size_empty_edge.get() == '' 
         or size_corner_empty_wells.get() == '' or horizontal_cell_lines.get() == '' 
         or vertical_cell_lines.get() == '' or drugs.get() == '' or controls.get() == ''):
         error_message = 'At least one of the entries is empty'
         print(error_message)
+        logger.error("DZN generation failed - empty required fields")
         tk.messagebox.showerror("Invalid input", error_message)
         return
 
     try:
         compounds: Dict[str, List[Any]] = ast.literal_eval(drugs.get())
+        logger.debug(f"Parsed {len(compounds)} compounds")
     except (ValueError, SyntaxError) as e:
         error_message = f'Error: the list of drugs has an invalid format:\n{drugs.get()[:50]}...\nDetails: {str(e)}'
         print(error_message)
+        logger.error(f"Invalid drug format: {e}")
         tk.messagebox.showerror("Invalid input", error_message)
         return
 
@@ -54,9 +63,11 @@ def generate_dzn_file() -> None:
         control_compounds: Dict[str, List[Any]] = ast.literal_eval(controls.get())
     # TODO: add another test - check that it fits the format of {'Name1': [Amount, 'Concentratio1',...],...}
     # e.g., {'Drug1': [5,'2', 'N/A'], 'Drug2': [10, '0.1', '0.5, '10']}
+        logger.debug(f"Parsed {len(control_compounds)} controls")
     except (ValueError, SyntaxError) as e:
         error_message = f'Error: the list of controls has an invalid format:\n{controls.get()[:50]}...\nDetails: {str(e)}'
         print(error_message)
+        logger.error(f"Invalid control format: {e}")
         tk.messagebox.showerror("Invalid input", error_message)
         return
 
@@ -147,7 +158,13 @@ def generate_dzn_file() -> None:
     dzn_txt += '|];\n\n'
 
     dzn_txt = dzn_txt.replace("'", '"')
-    print(dzn_txt)
+    
+    # Log DZN generation summary
+    total_compounds = sum(compound_replicates)
+    total_controls = sum(control_replicates)
+    print(f"Generated DZN: {num_rows.get()}x{num_cols.get()} plate, {nb_compounds} compounds ({total_compounds} wells), {nb_controls} controls ({total_controls} wells)")
+    logger.info(f"DZN content generated: {num_rows.get()}x{num_cols.get()}, compounds={nb_compounds}({total_compounds}), controls={nb_controls}({total_controls})")
+    logger.debug(f"DZN content preview: {dzn_txt[:100]}...")
 
     # Step 2 - Save the results
     path = tk.filedialog.asksaveasfilename(
@@ -156,13 +173,21 @@ def generate_dzn_file() -> None:
     print(path)
 
     if path is None or path == '':
+        logger.info("DZN save cancelled by user")
         return
+
+    print(f"Saving DZN to: {path}")
+    logger.info(f"User selected DZN save path: {path}")
 
     # Use context manager for file writing
     try:
         with open(path, "w") as dzn_file:
             dzn_file.write(dzn_txt)
+        
+        print(f"DZN saved successfully: {path}")
+        logger.info(f"DZN file saved: {path}, {len(dzn_txt)} characters")
     except (IOError, OSError) as e:
+        logger.error(f"DZN write failed: {path}, error: {e}")
         tk.messagebox.showerror("Error", f"Failed to write DZN file: {str(e)}")
         return
 
@@ -174,6 +199,7 @@ def generate_dzn_file() -> None:
     button_main.config(state=tk.NORMAL)
     control_names.set(str(control_names_str))
 
+    logger.info("DZN generation completed successfully")
     window.withdraw()
 
 
@@ -196,11 +222,14 @@ def reset_dzn() -> None:
 
     drugs.set("{'Drug1': [5,'0.1', '0.3'], 'Drug2': [5, '0.1', '0.5', '1']}")
     controls.set("{'pos': [10, '100'], 'neg': [10, '100'], 'DMSO': [20, '100']}")
+    
+    logger.debug("DZN form reset to defaults")
 
 
 def gen_dzn_show() -> None:
     """Show the DZN generation window."""
     window.deiconify()
+    logger.debug("DZN generation window shown")
 
 
 def check_replicates_on_different_plates() -> None:
@@ -410,3 +439,4 @@ button_generate.configure(command=lambda: generate_dzn_file())
 
 # Initialize with defaults
 reset_dzn()
+logger.debug("DZN generation window initialized")
