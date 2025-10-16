@@ -7,7 +7,7 @@ This document tracks the progress of key tasks in the MPLACE project.
 | Priority | Item                             | Status         | Details                                                                                      |
 |----------|----------------------------------|----------------|----------------------------------------------------------------------------------------------|
 | High     | Implement MVC Architecture       | Not done       | UI, logic, and I/O are tightly coupled across main.py, WindowGenDZN.py, and WindowVisuals.py; need to separate Model (data structures), View (UI components), and Controller (business logic) layers. |
-| High     | Decouple Window Dependencies     | Not done       | WindowGenDZN directly manipulates main window variables through global assignments; need proper inter-window communication patterns. |
+| High     | Decouple Window Dependencies     | Done           | Replaced direct variable sharing between main and WindowGenDZN with callback-based communication; introduced DznGenerationResult dataclass for structured data transfer; WindowGenDZN now uses completion_callback instead of directly manipulating main window variables; clean separation of concerns achieved. |
 | High     | Add Comprehensive Error Handling | Done           | All generic except: blocks replaced with specific exceptions (ValueError, TypeError, KeyError, etc.); proper exception chaining with 'from e' added; user-friendly error dialogs implemented throughout all modules. |
 | High     | Improve Resource Management      | Done           | Context managers for all file operations; matplotlib figures properly closed with pyplot.close(fig); defensive error handling in plotting ensures figures freed on failure; UI state consistency maintained across error paths; subprocess handling preserved as tested and working. |
 | Medium   | Configuration Management         | Partially done | paths.ini parsing centralized in utility.read_paths_ini_file with clearer error messages; needs environment variable support, validation schema, and centralized configuration object. Further improvements planned by original author. |
@@ -47,4 +47,4 @@ This progress tracking file should be updated after each significant change or b
 
 ---
 
-*Last updated: October 16, 2025 (implemented comprehensive logging framework with dual print+log approach)*
+*Last updated: October 16, 2025 (completed window dependency decoupling with callback-based communication)*

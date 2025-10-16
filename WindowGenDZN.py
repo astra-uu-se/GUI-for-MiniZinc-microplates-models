@@ -23,7 +23,8 @@
 
 import tkinter as tk
 from tkinter import ttk, VERTICAL, RIGHT, Y, LEFT, BOTH, SOLID, filedialog, messagebox
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Callable, Optional
+from dataclasses import dataclass
 import logging
 
 import ast
@@ -33,6 +34,30 @@ import utility as ut
 
 # Configure logging for DZN generation module
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class DznGenerationResult:
+    """Data structure for DZN generation results."""
+    file_path: str
+    rows: str
+    cols: str
+    control_names: str
+
+
+# Callback function for communicating with main window
+completion_callback: Optional[Callable[[DznGenerationResult], None]] = None
+
+
+def set_completion_callback(callback: Callable[[DznGenerationResult], None]) -> None:
+    """Set callback function to be called when DZN generation is complete.
+    
+    Args:
+        callback: Function to call with DznGenerationResult when generation completes
+    """
+    global completion_callback
+    completion_callback = callback
+    logger.debug("DZN completion callback registered")
 
 
 def generate_dzn_file() -> None:
@@ -170,8 +195,6 @@ def generate_dzn_file() -> None:
     path = tk.filedialog.asksaveasfilename(
         defaultextension=".dzn", filetypes=[('dzn files', '*.dzn')])
 
-    print(path)
-
     if path is None or path == '':
         logger.info("DZN save cancelled by user")
         return
@@ -191,13 +214,18 @@ def generate_dzn_file() -> None:
         tk.messagebox.showerror("Error", f"Failed to write DZN file: {str(e)}")
         return
 
-    # Update main window
-    path_main.set(path)
-    num_rows_main.set(num_rows.get())
-    num_cols_main.set(num_cols.get())
-    ut.path_show(path, label_main)
-    button_main.config(state=tk.NORMAL)
-    control_names.set(str(control_names_str))
+    # Notify main window through callback instead of direct manipulation
+    if completion_callback:
+        result = DznGenerationResult(
+            file_path=path,
+            rows=num_rows.get(),
+            cols=num_cols.get(), 
+            control_names=str(control_names_str)
+        )
+        completion_callback(result)
+        logger.debug("DZN completion callback invoked")
+    else:
+        logger.warning("No completion callback registered - main window not updated")
 
     logger.info("DZN generation completed successfully")
     window.withdraw()
@@ -251,14 +279,6 @@ window.resizable(False, False)
 window.geometry('+%d+%d' % (30, 30))
 window.protocol('WM_DELETE_WINDOW', window.withdraw)
 window.withdraw()
-
-# Variables for connection with main window
-path_main: tk.StringVar = tk.StringVar()
-label_main: tk.Label = tk.Label()
-button_main: ttk.Button = ttk.Button()
-control_names: tk.StringVar = tk.StringVar()
-num_rows_main: tk.StringVar = tk.StringVar()
-num_cols_main: tk.StringVar = tk.StringVar()
 
 # Local variables
 vcmd: Tuple = (window.register(ut.callback))

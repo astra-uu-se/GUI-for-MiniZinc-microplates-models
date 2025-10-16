@@ -29,6 +29,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from functools import partial
 from typing import Tuple
+from dataclasses import dataclass
 
 import utility as ut
 
@@ -45,6 +46,15 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class DznGenerationResult:
+    """Data structure for DZN generation results."""
+    file_path: str
+    rows: str
+    cols: str
+    control_names: str
 
 
 # ------------------------------
@@ -76,6 +86,26 @@ def reset_all() -> None:
     logger.info("Application state reset to defaults")
 
 
+def on_dzn_generated(result: DznGenerationResult) -> None:
+    """Handle DZN generation completion from WindowGenDZN.
+    
+    Args:
+        result: DZN generation result data
+    """
+    # Update main window state with generated DZN data
+    dzn_file_path.set(result.file_path)
+    num_rows.set(result.rows)
+    num_cols.set(result.cols)
+    control_names.set(result.control_names)
+    
+    # Update UI elements
+    ut.path_show(result.file_path, label_dzn_loaded)
+    button_run_minizinc.config(state=tk.NORMAL)
+    
+    print(f"DZN integrated: {result.rows}x{result.cols} plate, controls: {result.control_names}")
+    logger.info(f"DZN generation result integrated into main window: {result.file_path}")
+
+
 def generate_dzn() -> None:
     """Show the DZN file generation window."""
     wd.gen_dzn_show()
@@ -83,17 +113,12 @@ def generate_dzn() -> None:
 
 
 def connect_generate_dzn() -> None:
-    """Connect main window variables to DZN generation window.
+    """Set up callback for DZN generation completion.
     
-    Ensures seamless two-way transfer of data between windows.
+    Establishes clean communication between main and DZN windows.
     """
-    wd.path_main = dzn_file_path
-    wd.label_main = label_dzn_loaded
-    wd.button_main = button_run_minizinc
-    wd.num_rows_main = num_rows
-    wd.num_cols_main = num_cols
-    wd.control_names = control_names
-    logger.debug("Window variables connected between main and DZN generation")
+    wd.set_completion_callback(on_dzn_generated)
+    logger.debug("DZN generation callback configured")
 
 
 def load_dzn() -> None:
