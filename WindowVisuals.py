@@ -79,6 +79,11 @@ def draw_plates(parent: tk.Widget, figure_name_template: str, text_array: Sequen
             concentrations_list[material] = [str(x) for x in concentrations_list[material]]
             concentrations_list[material] = sorted(concentrations_list[material])
 
+    # Precompute alpha mappings once for all materials for performance optimization
+    alpha_mappings: Dict[str, Dict[Union[str, float, int], float]] = {}
+    for material in concentrations_list:
+        alpha_mappings[material] = transform_concentrations_to_alphas(concentrations_list[material])
+
     # Generate colors for materials using cached tab20 colormap
     color_index = 0
     material_colors: Dict[str, np.ndarray] = {}
@@ -92,7 +97,7 @@ def draw_plates(parent: tk.Widget, figure_name_template: str, text_array: Sequen
     tab_control = ttk.Notebook(parent)
     for layout in layouts_dict:
         draw_plate(tab_control, figure_name_template, layout,
-                   layouts_dict[layout], material_colors, concentrations_list, 
+                   layouts_dict[layout], material_colors, alpha_mappings, 
                    num_rows, num_cols, control_names)
     tab_control.grid(row=0, column=0, padx=10, pady=2)
 
@@ -111,12 +116,12 @@ def draw_plates(parent: tk.Widget, figure_name_template: str, text_array: Sequen
     scrollable_frame.bind(
         "<Configure>", lambda event: update_scroll_region(event, canvas_right))
 
-    # Draw material concentration scales
+    # Draw material concentration scales using precomputed alpha mappings
     for material in material_colors:
         material_color = material_colors[material]
         concentration_material = concentrations_list[material]
         draw_material_scale(scrollable_frame, material,
-                            material_color, concentration_material)
+                            material_color, concentration_material, alpha_mappings[material])
 
     canvas_right.create_window((0, 0), window=scrollable_frame, anchor="nw")
     tab_control2.grid(row=0, column=1, padx=10, pady=2)
@@ -133,7 +138,7 @@ def update_scroll_region(event: tk.Event, canvas: tk.Canvas) -> None:
 
 
 def draw_plate(parent: ttk.Notebook, figure_name_template: str, layout: str, layout_array: Sequence[Sequence[str]],
-               material_colors: Dict[str, np.ndarray], concentrations_list: Dict[str, Sequence[Union[str, float, int]]],
+               material_colors: Dict[str, np.ndarray], alpha_mappings: Dict[str, Dict[Union[str, float, int], float]],
                num_rows: int = 16, num_cols: int = 24, control_names: Sequence[str] = ()) -> None:
     """Draw a single microplate layout visualization.
     
@@ -143,7 +148,7 @@ def draw_plate(parent: ttk.Notebook, figure_name_template: str, layout: str, lay
         layout: Layout identifier/name
         layout_array: Array of layout data
         material_colors: Dictionary mapping materials to colors
-        concentrations_list: Dictionary of material concentrations
+        alpha_mappings: Precomputed dictionary mapping materials to their concentration alpha values
         num_rows: Number of rows in microplate
         num_cols: Number of columns in microplate
         control_names: List of control material names (shown as circles)
@@ -173,7 +178,7 @@ def draw_plate(parent: ttk.Notebook, figure_name_template: str, layout: str, lay
             else:
                 materials[line[1]] = [[line[0]] + line[1:]]
 
-        # Plot each material
+        # Plot each material using precomputed alpha values
         for material in materials:
             # Use circles for controls, squares for other materials
             if material in control_names:
@@ -181,7 +186,8 @@ def draw_plate(parent: ttk.Notebook, figure_name_template: str, layout: str, lay
             else:
                 marker = 's'
 
-            alpha_values = transform_concentrations_to_alphas(concentrations_list[material])
+            # Use precomputed alpha values for performance
+            alpha_values = alpha_mappings[material]
 
             x_coords: List[float] = []
             y_coords: List[float] = []
@@ -231,7 +237,8 @@ def draw_plate(parent: ttk.Notebook, figure_name_template: str, layout: str, lay
 
 
 def draw_material_scale(parent: tk.Widget, material_name: str, color: np.ndarray, 
-                        concentrations: Sequence[Union[str, float, int]]) -> None:
+                        concentrations: Sequence[Union[str, float, int]],
+                        alpha_mapping: Dict[Union[str, float, int], float]) -> None:
     """Draw a concentration scale for a specific material.
     
     Args:
@@ -239,10 +246,10 @@ def draw_material_scale(parent: tk.Widget, material_name: str, color: np.ndarray
         material_name: Name of the material
         color: RGB color array for the material
         concentrations: List of concentration values
+        alpha_mapping: Precomputed mapping of concentrations to alpha values
     """
-    # Create alpha values from 0.3 to 1
-    alphas_dict = transform_concentrations_to_alphas(concentrations)
-    alphas = [alphas_dict[x] for x in alphas_dict]
+    # Use precomputed alpha values for performance
+    alphas = [alpha_mapping[x] for x in alpha_mapping]
 
     rgba_colors = np.zeros((1, len(concentrations), 4))
     rgba_colors[:, :, 0] = color[0]
@@ -259,7 +266,7 @@ def draw_material_scale(parent: tk.Widget, material_name: str, color: np.ndarray
         ax.set_title(material_name)
 
         x_ticks = np.linspace(0, len(concentrations), len(concentrations))
-        x_labels = [str(i) for i in alphas_dict]
+        x_labels = [str(i) for i in alpha_mapping]
         ax.set_xticks(x_ticks)
         ax.set_xticklabels(x_labels)
         ax.set_yticks([])  # Hide y-axis ticks as it's a 1D spectrum

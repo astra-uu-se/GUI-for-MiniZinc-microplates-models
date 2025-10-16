@@ -18,7 +18,7 @@ This document tracks the progress of key tasks in the MPLACE project.
 | Medium   | Extract Constants and Magic Numbers | Not done    | Magic numbers and strings scattered throughout (grid padding, widget sizes, default values); need centralized constants module for maintainability. |
 | Medium   | Separate UI Layout from Logic    | Not done       | WindowGenDZN mixes UI setup with business logic; need clear separation between interface definition and data processing. |
 | Low      | Cache Coordinate Transformations | Done           | Added @lru_cache(maxsize=2048) decorator to transform_coordinate function in utility.py; provides significant performance improvement for repeated well coordinate processing across materials and layouts. |
-| Low      | Precompute Alpha Mappings        | Not done       | transform_concentrations_to_alphas recalculated for each material in each layout; compute once per material and reuse across visualizations. |
+| Low      | Precompute Alpha Mappings        | Done           | Precompute transform_concentrations_to_alphas once per material in draw_plates() and pass to draw_plate() and draw_material_scale(); eliminates repeated alpha calculation across layouts and significantly improves visualization performance for multi-layout datasets. |
 | Low      | Replace Tab20 Colormap Limitation | Not done      | Current 20-color limit causes repetition with many materials; implement extended colormap with 50+ distinct colors for better material differentiation. |
 | Low      | Optimize Matplotlib Performance  | Done           | Cached pyplot.get_cmap('tab20') at module level as COLORMAP_TAB20 in WindowVisuals.py; eliminates repeated colormap lookups and improves rendering performance. |
 | Low      | Add Progress Indicators          | Not done       | Long-running MiniZinc operations show minimal feedback; add progress bars and status updates for better user experience. |
@@ -47,4 +47,4 @@ This progress tracking file should be updated after each significant change or b
 
 ---
 
-*Last updated: October 16, 2025 (completed coordinate caching and matplotlib optimization)*
+*Last updated: October 16, 2025 (completed alpha mappings precomputation optimization)*
