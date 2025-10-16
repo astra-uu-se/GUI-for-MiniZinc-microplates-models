@@ -17,10 +17,10 @@ This document tracks the progress of key tasks in the MPLACE project.
 | Medium   | Implement Consistent Naming Conventions | Done        | Constants converted to UPPERCASE (LETTERS_CAPITAL, LETTERS_LOWERCASE); variables use descriptive names (drugs, controls, num_rows, num_cols); UI elements follow consistent snake_case naming; preserved COMPD tool-specific naming. |
 | Medium   | Extract Constants and Magic Numbers | Not done    | Magic numbers and strings scattered throughout (grid padding, widget sizes, default values); need centralized constants module for maintainability. |
 | Medium   | Separate UI Layout from Logic    | Not done       | WindowGenDZN mixes UI setup with business logic; need clear separation between interface definition and data processing. |
-| Low      | Cache Coordinate Transformations | Not done       | transform_coordinate called repeatedly for same well positions; add @lru_cache(maxsize=2048) for performance improvement. |
+| Low      | Cache Coordinate Transformations | Done           | Added @lru_cache(maxsize=2048) decorator to transform_coordinate function in utility.py; provides significant performance improvement for repeated well coordinate processing across materials and layouts. |
 | Low      | Precompute Alpha Mappings        | Not done       | transform_concentrations_to_alphas recalculated for each material in each layout; compute once per material and reuse across visualizations. |
 | Low      | Replace Tab20 Colormap Limitation | Not done      | Current 20-color limit causes repetition with many materials; implement extended colormap with 50+ distinct colors for better material differentiation. |
-| Low      | Optimize Matplotlib Performance  | Not done       | pyplot.get_cmap('tab20') called repeatedly; cache colormap at module level and reduce matplotlib artist overhead. |
+| Low      | Optimize Matplotlib Performance  | Done           | Cached pyplot.get_cmap('tab20') at module level as COLORMAP_TAB20 in WindowVisuals.py; eliminates repeated colormap lookups and improves rendering performance. |
 | Low      | Add Progress Indicators          | Not done       | Long-running MiniZinc operations show minimal feedback; add progress bars and status updates for better user experience. |
 | Low      | Improve Error Diagnostics        | Not done       | MiniZinc failures could provide more specific diagnostic information; enhance subprocess error handling with context-specific guidance. |
 | Low      | Add Bounds Checking             | Not done       | Plate dimensions and layout parameters lack validation against reasonable limits; add input validation with helpful error messages. |
@@ -47,4 +47,4 @@ This progress tracking file should be updated after each significant change or b
 
 ---
 
-*Last updated: October 16, 2025 (comprehensive code quality assessment and improvement roadmap)*
+*Last updated: October 16, 2025 (completed coordinate caching and matplotlib optimization)*

@@ -17,7 +17,7 @@
 #
 # Authors: Ramiz GINDULLIN (ramiz.gindullin@it.uu.se)
 # Version: 1.0
-# Last Revision: September 2025
+# Last Revision: October 2025
 #
 
 
@@ -27,6 +27,7 @@ import subprocess
 import sys
 import ast
 import re
+from functools import lru_cache
 import numpy as np
 import tkinter as tk
 from typing import List, Dict, Tuple, Union, Sequence
@@ -38,6 +39,7 @@ LETTERS_LOWERCASE: List[str] = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"
                                 "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
 
 
+@lru_cache(maxsize=2048)
 def transform_coordinate(well: str) -> List[int]:
     """Transform coordinates from standard csv-file format.
     
@@ -50,6 +52,9 @@ def transform_coordinate(well: str) -> List[int]:
     Example:
         transform_coordinate('A1') returns [0, 0]
         transform_coordinate('B3') returns [1, 2]
+    
+    Note:
+        This function is cached for performance when processing repeated well coordinates.
     """
     row = 0
     for i in range(len(well)):

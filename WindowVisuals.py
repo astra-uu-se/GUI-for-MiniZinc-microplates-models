@@ -17,7 +17,7 @@
 #
 # Authors: Ramiz GINDULLIN (ramiz.gindullin@it.uu.se)
 # Version: 1.0
-# Last Revision: September 2025
+# Last Revision: October 2025
 #
 
 
@@ -35,6 +35,9 @@ import ast
 from typing import List, Dict, Sequence, Union
 
 from utility import transform_coordinate, read_csv_file, transform_concentrations_to_alphas, to_number_if_possible
+
+# Cache colormap at module level for performance optimization
+COLORMAP_TAB20 = pyplot.get_cmap('tab20')
 
 
 def draw_plates(parent: tk.Widget, figure_name_template: str, text_array: Sequence[str], 
@@ -76,12 +79,11 @@ def draw_plates(parent: tk.Widget, figure_name_template: str, text_array: Sequen
             concentrations_list[material] = [str(x) for x in concentrations_list[material]]
             concentrations_list[material] = sorted(concentrations_list[material])
 
-    # Generate colors for materials using tab20 colormap
-    colormap = pyplot.get_cmap('tab20')
+    # Generate colors for materials using cached tab20 colormap
     color_index = 0
     material_colors: Dict[str, np.ndarray] = {}
     for material in sorted(concentrations_list.keys()):
-        material_colors[material] = np.array(colormap(color_index)[:3])
+        material_colors[material] = np.array(COLORMAP_TAB20(color_index)[:3])
         color_index += 1
         if color_index >= 20:
             color_index = 0
@@ -92,7 +94,7 @@ def draw_plates(parent: tk.Widget, figure_name_template: str, text_array: Sequen
         draw_plate(tab_control, figure_name_template, layout,
                    layouts_dict[layout], material_colors, concentrations_list, 
                    num_rows, num_cols, control_names)
-    tab_control.grid(row=1, column=0, padx=10, pady=2)
+    tab_control.grid(row=0, column=0, padx=10, pady=2)
 
     # Create scrollable material scale panel
     tab_control2 = ttk.Frame(parent, width=400)
@@ -117,7 +119,7 @@ def draw_plates(parent: tk.Widget, figure_name_template: str, text_array: Sequen
                             material_color, concentration_material)
 
     canvas_right.create_window((0, 0), window=scrollable_frame, anchor="nw")
-    tab_control2.grid(row=1, column=1, padx=10, pady=2)
+    tab_control2.grid(row=0, column=1, padx=10, pady=2)
 
 
 def update_scroll_region(event: tk.Event, canvas: tk.Canvas) -> None:
@@ -303,9 +305,6 @@ def visualize(file_path: str, figure_name_template: str, rows: str, cols: str,
             window.destroy()
 
     window: tk.Tk = tk.Tk()
-    quit_button: ttk.Button = ttk.Button(window, text='close window')
-    quit_button.grid(row=0, column=0, columnspan=2)
-    quit_button.configure(command=cleanup_and_close)
     window.title("Visualize GUI")
     window.protocol('WM_DELETE_WINDOW', cleanup_and_close)  # Handle window X button
 
