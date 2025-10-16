@@ -123,6 +123,8 @@ def run_minizinc() -> None:
         solver_config = plaid_mpc_path.get()
         model_file = plaid_path.get()
 
+    # Store original label text to restore on failure
+    original_label_text = label_csv_loaded.cget("text")
     label_csv_loaded.config(text='Running the model...')
     time.sleep(0.25)
     
@@ -137,6 +139,8 @@ def run_minizinc() -> None:
         print(path)
 
         if path is None or path == '':
+            # User cancelled - restore original state
+            label_csv_loaded.config(text=original_label_text)
             return
 
         # Use context manager for file writing
@@ -146,6 +150,7 @@ def run_minizinc() -> None:
                 csv_file.writelines(csv_text)
         except (IOError, OSError) as e:
             tk.messagebox.showerror("Error", f"Failed to write CSV file: {str(e)}")
+            label_csv_loaded.config(text='Error writing file')
             return
 
         update_csv_path(path)
@@ -174,7 +179,8 @@ def on_close() -> None:
     except (AttributeError, tk.TclError):
         # Window might not exist or already be destroyed
         pass
-    root.destroy()
+    finally:
+        root.destroy()
 
 
 if sys.platform.startswith('win'):

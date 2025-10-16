@@ -148,75 +148,84 @@ def draw_plate(parent: ttk.Notebook, figure_name_template: str, layout: str, lay
     """
     # Create figure
     fig = Figure()
-    ax = fig.add_subplot(111)
+    try:
+        ax = fig.add_subplot(111)
 
-    # Ensure consistent orientation (wider dimension is horizontal)
-    if num_cols > num_rows:
-        num_rows, num_cols = num_cols, num_rows
-        is_switched = True
-    else:
-        is_switched = False
-
-    ax.grid(True)
-    ax.set_xticks(np.arange(0, num_rows + 1, 1))
-    ax.set_yticks(np.arange(0, num_cols + 1, 1))
-    ax.set_aspect('equal')
-
-    # Group wells by material
-    materials: Dict[str, List[List[str]]] = {}
-    for line in layout_array:
-        if line[1] in materials:
-            materials[line[1]].append([line[0]] + line[1:])
+        # Ensure consistent orientation (wider dimension is horizontal)
+        if num_cols > num_rows:
+            num_rows, num_cols = num_cols, num_rows
+            is_switched = True
         else:
-            materials[line[1]] = [[line[0]] + line[1:]]
+            is_switched = False
 
-    # Plot each material
-    for material in materials:
-        # Use circles for controls, squares for other materials
-        if material in control_names:
-            marker = 'o'
-        else:
-            marker = 's'
+        ax.grid(True)
+        ax.set_xticks(np.arange(0, num_rows + 1, 1))
+        ax.set_yticks(np.arange(0, num_cols + 1, 1))
+        ax.set_aspect('equal')
 
-        alpha_values = transform_concentrations_to_alphas(concentrations_list[material])
-
-        x_coords: List[float] = []
-        y_coords: List[float] = []
-        alphas: List[float] = []
-        
-        for well in materials[material]:
-            if is_switched:
-                [y_coord, x_coord] = transform_coordinate(well[0])
+        # Group wells by material
+        materials: Dict[str, List[List[str]]] = {}
+        for line in layout_array:
+            if line[1] in materials:
+                materials[line[1]].append([line[0]] + line[1:])
             else:
-                [x_coord, y_coord] = transform_coordinate(well[0])
-            x_coords.append(x_coord + 0.5)
-            y_coords.append(y_coord + 0.5)
+                materials[line[1]] = [[line[0]] + line[1:]]
+
+        # Plot each material
+        for material in materials:
+            # Use circles for controls, squares for other materials
+            if material in control_names:
+                marker = 'o'
+            else:
+                marker = 's'
+
+            alpha_values = transform_concentrations_to_alphas(concentrations_list[material])
+
+            x_coords: List[float] = []
+            y_coords: List[float] = []
+            alphas: List[float] = []
             
-            try:
-                alphas.append(alpha_values[to_number_if_possible(well[2])])
-            except (KeyError, IndexError):
-                # Handle missing concentration data gracefully
-                alphas.append(alpha_values[well[2]])
+            for well in materials[material]:
+                if is_switched:
+                    [y_coord, x_coord] = transform_coordinate(well[0])
+                else:
+                    [x_coord, y_coord] = transform_coordinate(well[0])
+                x_coords.append(x_coord + 0.5)
+                y_coords.append(y_coord + 0.5)
+                
+                try:
+                    alphas.append(alpha_values[to_number_if_possible(well[2])])
+                except (KeyError, IndexError):
+                    # Handle missing concentration data gracefully
+                    alphas.append(alpha_values[well[2]])
 
-        colors = [material_colors[material] for i in range(len(x_coords))]
-        ax.scatter(x_coords, y_coords, marker=marker, c=colors, s=80,
-                   edgecolor='black', alpha=alphas)
+            colors = [material_colors[material] for i in range(len(x_coords))]
+            ax.scatter(x_coords, y_coords, marker=marker, c=colors, s=80,
+                       edgecolor='black', alpha=alphas)
 
-    ax.set_xlim(0, num_rows)
-    ax.set_ylim(0, num_cols)
+        ax.set_xlim(0, num_rows)
+        ax.set_ylim(0, num_cols)
 
-    # Save figure before embedding
-    fig.savefig(figure_name_template + layout + '.png')
+        # Save figure before embedding
+        fig.savefig(figure_name_template + layout + '.png')
 
-    # Create tab and canvas
-    tab = ttk.Frame(parent)
-    canvas = FigureCanvasTkAgg(fig, master=tab)
-    canvas.draw()
-    canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-    parent.add(tab, text=layout)
+        # Create tab and canvas
+        tab = ttk.Frame(parent)
+        canvas = FigureCanvasTkAgg(fig, master=tab)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        parent.add(tab, text=layout)
 
-    # Store canvas reference for cleanup
-    tab.canvas_ref = canvas
+        # Store canvas reference for cleanup
+        tab.canvas_ref = canvas
+
+    except Exception:
+        # Ensure figure resources are freed if plotting fails
+        try:
+            pyplot.close(fig)
+        except Exception:
+            pass
+        raise
 
 
 def draw_material_scale(parent: tk.Widget, material_name: str, color: np.ndarray, 
@@ -241,25 +250,34 @@ def draw_material_scale(parent: tk.Widget, material_name: str, color: np.ndarray
 
     # Create Figure
     fig = Figure(figsize=(4, 2))
-    ax = fig.add_subplot(111)
+    try:
+        ax = fig.add_subplot(111)
 
-    ax.imshow(rgba_colors, extent=[0, len(concentrations), 0, 1], aspect='auto')
-    ax.set_title(material_name)
+        ax.imshow(rgba_colors, extent=[0, len(concentrations), 0, 1], aspect='auto')
+        ax.set_title(material_name)
 
-    x_ticks = np.linspace(0, len(concentrations), len(concentrations))
-    x_labels = [str(i) for i in alphas_dict]
-    ax.set_xticks(x_ticks)
-    ax.set_xticklabels(x_labels)
-    ax.set_yticks([])  # Hide y-axis ticks as it's a 1D spectrum
+        x_ticks = np.linspace(0, len(concentrations), len(concentrations))
+        x_labels = [str(i) for i in alphas_dict]
+        ax.set_xticks(x_ticks)
+        ax.set_xticklabels(x_labels)
+        ax.set_yticks([])  # Hide y-axis ticks as it's a 1D spectrum
 
-    tab2 = ttk.Frame(parent)
-    canvas = FigureCanvasTkAgg(fig, master=tab2)
-    canvas.draw()
-    canvas.get_tk_widget().pack(fill="both", expand=True)
-    tab2.pack(fill="both", expand=True, padx=1, pady=5)
+        tab2 = ttk.Frame(parent)
+        canvas = FigureCanvasTkAgg(fig, master=tab2)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill="both", expand=True)
+        tab2.pack(fill="both", expand=True, padx=1, pady=5)
 
-    # Store canvas reference for cleanup
-    tab2.canvas_ref = canvas
+        # Store canvas reference for cleanup
+        tab2.canvas_ref = canvas
+
+    except Exception:
+        # Ensure figure resources are freed if scale creation fails
+        try:
+            pyplot.close(fig)
+        except Exception:
+            pass
+        raise
 
 
 def visualize(file_path: str, figure_name_template: str, rows: str, cols: str, 
@@ -312,9 +330,10 @@ def cleanup_canvas_widgets(widget: tk.Misc) -> None:
     if hasattr(widget, 'canvas_ref'):
         try:
             canvas = widget.canvas_ref
+            fig = canvas.figure
             canvas.get_tk_widget().destroy()
-            # Clear the figure
-            canvas.figure.clear()
+            # Close the figure explicitly to free memory from backend
+            pyplot.close(fig)
             del canvas
         except (AttributeError, tk.TclError):
             # Canvas might already be destroyed
