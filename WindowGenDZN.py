@@ -61,42 +61,57 @@ def set_completion_callback(callback: Callable[[DznGenerationResult], None]) -> 
 
 
 def generate_dzn_file() -> None:
-    """Generate DZN file from user input parameters."""
-    logger.info("Starting DZN file generation")
+    """Generate DZN file from user input parameters with comprehensive validation."""
+    logger.info("Starting DZN file generation with validation")
     
-    # Step 0 - validate input data
+    # Collect all validation errors before showing any dialogs
+    all_errors = []
+    
+    # Step 0 - Basic field validation
     if (num_cols.get() == '' or num_rows.get() == '' or size_empty_edge.get() == '' 
         or size_corner_empty_wells.get() == '' or horizontal_cell_lines.get() == '' 
         or vertical_cell_lines.get() == '' or drugs.get() == '' or controls.get() == ''):
-        error_message = 'At least one of the entries is empty'
-        print(error_message)
-        logger.error("DZN generation failed - empty required fields")
-        tk.messagebox.showerror("Invalid input", error_message)
+        all_errors.append("All fields must be filled in")
+    
+    # Validate plate dimensions
+    dimension_errors = ut.validate_plate_dimensions(num_rows.get(), num_cols.get())
+    all_errors.extend(dimension_errors)
+    
+    # Parse and validate compounds
+    compounds_dict, parsing_errors = ut.parse_materials_dict(drugs.get())
+    all_errors.extend(parsing_errors)
+    
+    if not parsing_errors:  # Only validate schema if parsing succeeded
+        schema_errors = ut.validate_materials_schema(compounds_dict, "compounds")
+        all_errors.extend(schema_errors)
+    
+    # Parse and validate controls
+    controls_dict, control_parsing_errors = ut.parse_materials_dict(controls.get())
+    all_errors.extend(control_parsing_errors)
+    
+    if not control_parsing_errors:  # Only validate schema if parsing succeeded
+        control_schema_errors = ut.validate_materials_schema(controls_dict, "controls")
+        all_errors.extend(control_schema_errors)
+    
+    # If any validation errors, show them all and abort
+    if all_errors:
+        error_message = ut.format_validation_errors(all_errors)
+        print("Input validation failed - check your entries")
+        logger.error(f"DZN generation validation failed: {len(all_errors)} errors")
+        tk.messagebox.showerror("Input Validation Error", error_message)
         return
+    
+    # All validation passed - show summary and proceed
+    total_compound_wells = sum(compounds_dict[name][0] * len(compounds_dict[name][1:]) for name in compounds_dict)
+    total_control_wells = sum(controls_dict[name][0] * len(controls_dict[name][1:]) for name in controls_dict)
+    
+    print(f"Validated: {len(compounds_dict)} compounds ({total_compound_wells} wells), {len(controls_dict)} controls ({total_control_wells} wells); {num_rows.get()}x{num_cols.get()} plate")
+    logger.info(f"Input validation passed: compounds={len(compounds_dict)}({total_compound_wells}), controls={len(controls_dict)}({total_control_wells}), plate={num_rows.get()}x{num_cols.get()}")
 
-    try:
-        compounds: Dict[str, List[Any]] = ast.literal_eval(drugs.get())
-        logger.debug(f"Parsed {len(compounds)} compounds")
-    except (ValueError, SyntaxError) as e:
-        error_message = f'Error: the list of drugs has an invalid format:\n{drugs.get()[:50]}...\nDetails: {str(e)}'
-        print(error_message)
-        logger.error(f"Invalid drug format: {e}")
-        tk.messagebox.showerror("Invalid input", error_message)
-        return
-
-    try:
-        control_compounds: Dict[str, List[Any]] = ast.literal_eval(controls.get())
-    # TODO: add another test - check that it fits the format of {'Name1': [Amount, 'Concentratio1',...],...}
-    # e.g., {'Drug1': [5,'2', 'N/A'], 'Drug2': [10, '0.1', '0.5, '10']}
-        logger.debug(f"Parsed {len(control_compounds)} controls")
-    except (ValueError, SyntaxError) as e:
-        error_message = f'Error: the list of controls has an invalid format:\n{controls.get()[:50]}...\nDetails: {str(e)}'
-        print(error_message)
-        logger.error(f"Invalid control format: {e}")
-        tk.messagebox.showerror("Invalid input", error_message)
-        return
-
-    # Step 1 - Generate DZN content
+    # Step 1 - Generate DZN content (use validated dicts)
+    compounds = compounds_dict
+    control_compounds = controls_dict
+    
     dzn_txt = ''
 
     # Write basic values
@@ -184,12 +199,7 @@ def generate_dzn_file() -> None:
 
     dzn_txt = dzn_txt.replace("'", '"')
     
-    # Log DZN generation summary
-    total_compounds = sum(compound_replicates)
-    total_controls = sum(control_replicates)
-    print(f"Generated DZN: {num_rows.get()}x{num_cols.get()} plate, {nb_compounds} compounds ({total_compounds} wells), {nb_controls} controls ({total_controls} wells)")
-    logger.info(f"DZN content generated: {num_rows.get()}x{num_cols.get()}, compounds={nb_compounds}({total_compounds}), controls={nb_controls}({total_controls})")
-    logger.debug(f"DZN content preview: {dzn_txt[:100]}...")
+    logger.debug(f"DZN content generated: {len(dzn_txt)} characters")
 
     # Step 2 - Save the results
     path = tk.filedialog.asksaveasfilename(

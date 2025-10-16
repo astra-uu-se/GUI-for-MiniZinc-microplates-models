@@ -74,6 +74,183 @@ def transform_coordinate(well: str) -> List[int]:
             return [row, col]
 
 
+def parse_materials_dict(text: str) -> Tuple[Dict[str, List], List[str]]:
+    """Parse materials dictionary string and return parsed dict with validation errors.
+    (geneated by Perplexity AI)
+
+    Args:
+        text: String representation of materials dictionary
+        
+    Returns:
+        Tuple of (parsed_dict, error_list). If parsing fails completely,
+        parsed_dict will be empty and error_list will contain parsing error.
+        
+    Example:
+        parse_materials_dict("{'Drug1': [5, '0.1', '0.3']}")
+        Returns: ({'Drug1': [5, '0.1', '0.3']}, [])
+    """
+    errors = []
+    
+    # Trim whitespace
+    text = text.strip()
+    
+    if not text:
+        errors.append("Materials dictionary cannot be empty")
+        return {}, errors
+    
+    try:
+        parsed = ast.literal_eval(text)
+    except (ValueError, SyntaxError) as e:
+        errors.append(f"Cannot parse materials dictionary: {str(e)}")
+        logger.debug(f"Materials parsing failed: {e}")
+        return {}, errors
+    
+    # Check if result is a dictionary
+    if not isinstance(parsed, dict):
+        errors.append(f"Materials must be a dictionary, got {type(parsed).__name__}")
+        return {}, errors
+    
+    logger.debug(f"Parsed materials dictionary with {len(parsed)} entries")
+    return parsed, errors
+
+
+def validate_materials_schema(materials: Dict[str, List], kind: str) -> List[str]:
+    """Validate materials dictionary schema and return list of validation errors.
+    (geneated by Perplexity AI)
+   
+    Args:
+        materials: Dictionary of materials to validate
+        kind: Type of materials ("compounds" or "controls") for error messages
+        
+    Returns:
+        List of validation error messages (empty if valid)
+        
+    Validation rules:
+        - Each key must be a non-empty string ≤ 100 characters
+        - Each value must be a list with length ≥ 2
+        - First list element must be integer ≥ 1 (replicates)
+        - Remaining elements can be any type (concentrations)
+    """
+    errors = []
+    
+    if not materials:
+        errors.append(f"At least one {kind[:-1]} must be specified")
+        return errors
+    
+    for name, data in materials.items():
+        # Validate material name
+        if not isinstance(name, str):
+            errors.append(f"Material name must be text, got {type(name).__name__} for '{name}'")
+            continue
+            
+        name = name.strip()
+        if not name:
+            errors.append(f"Material name cannot be empty")
+            continue
+            
+        if len(name) > 100:
+            errors.append(f"'{name}': material name too long (max 100 characters, got {len(name)})")
+            continue
+            
+        if not name.isprintable():
+            errors.append(f"'{name}': material name contains non-printable characters")
+            continue
+        
+        # Validate data structure
+        if not isinstance(data, list):
+            errors.append(f"'{name}': data must be a list, got {type(data).__name__}")
+            continue
+            
+        if len(data) < 2:
+            errors.append(f"'{name}': must have at least replicate count and one concentration (got {len(data)} items)")
+            continue
+        
+        # Validate replicate count (first element)
+        replicates = data[0]
+        if not isinstance(replicates, int):
+            errors.append(f"'{name}': replicate count must be an integer (got {type(replicates).__name__}: {replicates})")
+            continue
+            
+        if replicates < 1:
+            errors.append(f"'{name}': replicate count must be ≥ 1 (got {replicates})")
+            continue
+        
+        # Validate concentrations (remaining elements) - accept any type but check for obvious issues
+        concentrations = data[1:]
+        for i, conc in enumerate(concentrations):
+            if isinstance(conc, str):
+                conc_trimmed = conc.strip()
+                if not conc_trimmed:
+                    errors.append(f"'{name}': concentration {i+1} cannot be empty")
+    
+    logger.debug(f"Validated {kind} schema: {len(errors)} errors found")
+    return errors
+
+
+def validate_plate_dimensions(rows: str, cols: str) -> List[str]:
+    """Validate plate dimension strings.
+    (geneated by Perplexity AI)
+   
+    Args:
+        rows: Number of rows as string
+        cols: Number of columns as string
+        
+    Returns:
+        List of validation error messages (empty if valid)
+        
+    Validation rules:
+        - Both must be convertible to integers
+        - Both must be ≥ 1
+    """
+    errors = []
+    
+    # Validate rows
+    try:
+        rows_int = int(rows.strip())
+        if rows_int < 1:
+            errors.append(f"Number of rows must be ≥ 1 (got {rows_int})")
+    except (ValueError, AttributeError):
+        errors.append(f"Number of rows must be a valid integer (got '{rows}')")
+    
+    # Validate columns
+    try:
+        cols_int = int(cols.strip())
+        if cols_int < 1:
+            errors.append(f"Number of columns must be ≥ 1 (got {cols_int})")
+    except (ValueError, AttributeError):
+        errors.append(f"Number of columns must be a valid integer (got '{cols}')")
+    
+    logger.debug(f"Validated plate dimensions: rows={rows}, cols={cols}, {len(errors)} errors")
+    return errors
+
+
+def format_validation_errors(errors: List[str]) -> str:
+    """Format validation errors into user-friendly message with example.
+    (geneated by Perplexity AI)
+   
+    Args:
+        errors: List of validation error messages
+        
+    Returns:
+        Formatted error message with example usage
+    """
+    if not errors:
+        return ""
+    
+    message = "Input validation failed:\n\n"
+    
+    # Add numbered error list
+    for i, error in enumerate(errors, 1):
+        message += f"{i}. {error}\n"
+    
+    # Add example
+    message += "\nCorrect format example:\n"
+    message += "Compounds: {'Drug1': [5, '0.1', '0.3'], 'Drug2': [10, '1.0', '2.0']}\n"
+    message += "Controls: {'pos': [8, '100'], 'neg': [8, '0'], 'DMSO': [16, '100']}"
+    
+    return message
+
+
 def read_csv_file(file_path: str) -> List[str]:
     """Read CSV file and return all lines except header.
     
