@@ -32,7 +32,7 @@ Future plans:
   - using a colormap with a larger number (at least 50) of distinct colors
 
 Limitations:
-  - for simplicity of development, it is not possible to select custom names and locations for saved `*.png` files. We use the name and location of the `*.csv` file
+  - for simplicity of development, it is not possible to select custom names and locations for saved `*.png` files. We use the name and location of the `*.csv` file (possibly will be addressed in the future)
   - MPLACE currently uses the `tab20` colormap, i.e. 20 distinct colors, meaning that the project repeats the same colors when the number of materials is larger than 20
 
 
@@ -41,9 +41,9 @@ Limitations:
   1. Install Python (3.12+ recommended) with `numpy` (2.1+ recommended) and `matplotlib` (3.10+ recommended) packages (you can read the articles on how to install [Python](https://www.wikihow.com/Install-Python) and [the packages](https://packaging.python.org/en/latest/tutorials/installing-packages/))
   2. (Optional) Download [PLAID](https://github.com/pharmbio/plaid) and/or other model files (`*.mzn`) and copy them to a desired location. We already supplement the forked version of PLAID, which is compatible with the GUI (there are a few options that were added)
   3. Install [MiniZinc](https://www.minizinc.org/)
-  4. Download and unzip MPLACE at a location of your choosing
-  5. Configure paths to MiniZinc, PLAID and/or another model files in the `paths.ini` file
-  6. (optional) Update solver configuration files for PLAID and/or another model (by default, `plaid_default.mpc` and `compd_default.mpc`, respectively) if you want to switch a solver or change the number of threads used by the solver. You can create additional solver configuration files as well (e.g., if you want to try different settings). Additional notes:
+  4. Download and unzip MPLACE at a location of your choosing (by default, the project uses `mzn/` folder)
+  5. Configure paths to MiniZinc, PLAID and/or another model files in the `config/paths.ini` file (PLAID files are already supplied by the GUI, the version of September 30, 2025)
+  6. (optional) Update solver configuration files for PLAID and/or another model (by default, `mzn/plaid_default.mpc` and `mzn/compd_default.mpc`, respectively) if you want to switch a solver or change the number of threads used by the solver. You can create additional solver configuration files as well (e.g., if you want to try different settings). Additional notes:
      
        - PLAID can only work with GeCode
        - Non-PLAID layout quality might depend on the timeout, i.e., if you are unsatisfied with a solution, you can try to increase the timeout from 180s to e.g., 300s
