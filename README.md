@@ -50,7 +50,7 @@ Limitations:
 
 ## Launching MPLACE
 
-To launch the MPLACE, you need to execute the Python script `main.py`, e.g., by using the command `python3 main.py` in the terminal.
+To launch the MPLACE, you need to execute the Python script `mplace.py`, e.g., by using the command `python3 mplace.py` in the terminal.
 
 These are tutorials that can help you learn how to execute Python scripts:
 
