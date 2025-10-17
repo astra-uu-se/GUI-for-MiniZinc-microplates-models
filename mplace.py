@@ -32,10 +32,10 @@ from typing import Tuple
 from dataclasses import dataclass
 
 import utility as ut
-from constants import PlateDefaults, UI, Messages, WindowConfig, System, FileTypes
+from models.constants import PlateDefaults, UI, Messages, WindowConfig, System, FileTypes
 
-import WindowVisuals as wv
-import WindowGenDZN as wd
+from ui import window_dzn as wd
+from ui import window_visuals as wv
 
 # Configure logging for main application
 logging.basicConfig(

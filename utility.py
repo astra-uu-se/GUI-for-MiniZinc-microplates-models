@@ -34,7 +34,7 @@ import numpy as np
 import tkinter as tk
 from typing import List, Dict, Tuple, Union, Sequence
 
-from constants import Performance, Validation, PathsIni, Visualization
+from models.constants import Performance, Validation, PathsIni, Visualization
 
 # Configure logging for utility module
 logger = logging.getLogger(__name__)
@@ -404,7 +404,7 @@ def read_paths_ini_file() -> Tuple[str, str, str, str, str]:
     """
     logger.debug("Loading configuration from paths.ini")
     try:
-        with open('paths.ini', 'r') as file:
+        with open('config/paths.ini', 'r') as file:
             paths_array = file.readlines()
     except (FileNotFoundError, IOError) as e:
         logger.error(f"Cannot read paths.ini file: {e}")

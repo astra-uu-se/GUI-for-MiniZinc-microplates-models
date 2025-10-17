@@ -92,7 +92,7 @@ mplace/
 
 ### Implementation Stages (timeline is very approximate)
 
-#### Stage 1: Create Package Structure (Week 1, Days 1-2)
+#### Stage 1: Create Package Structure (Week 1, Days 1-2, DONE)
 - **Objective**: Set up directory structure and move safe files
 - **Tasks**:
   1. Create directories: `mkdir ui core models config mzn tools`
@@ -104,14 +104,14 @@ mplace/
      - `mv "Convert the compounds and controls.xlsx" tools/`
   4. Update imports for constants and test application still works
 
-#### Stage 2: Rename Main Files (Week 1, Days 3-4)  
+#### Stage 2: Rename Main Files (Week 1, Days 3-4, DONE)  
 - **Objective**: Rename files to cleaner names and organize into packages
 - **Tasks**:
   1. Rename files:
-     - `mv main.py app.py`
+     - `mv main.py mplace.py`
      - `mv WindowGenDZN.py ui/window_dzn.py`
      - `mv WindowVisuals.py ui/window_visuals.py`
-  2. Fix imports in `app.py`:
+  2. Fix imports in `mplace.py`:
      - `import WindowGenDZN as wd` → `from ui import window_dzn as wd`
      - `import WindowVisuals as wv` → `from ui import window_visuals as wv`
      - `from constants import ...` → `from models.constants import ...`
@@ -128,7 +128,7 @@ mplace/
      - Move `read_paths_ini_file()` from utility.py  
      - Rename to `load_paths_config()` for clarity
   3. Update imports:
-     - In app.py: `from utility import read_paths_ini_file` → `from config.loader import load_paths_config`
+     - In mplace.py: `from utility import read_paths_ini_file` → `from config.loader import load_paths_config`
      - In UI files: `from utility import read_csv_file` → `from core.io_utils import read_csv_file`
 
 #### Stage 4: Extract MiniZinc Logic (Week 2, Days 2-3)
@@ -143,9 +143,9 @@ mplace/
          def extract_csv_from_output(self, output_text):
              # Move extract_csv_text logic here
      ```
-  2. Update `app.py` in `run_minizinc()` function:
+  2. Update `mplace.py` in `run_minizinc()` function:
      - Replace direct `run_cmd()` call with `MiniZincRunner` usage
-     - Keep UI state management in app.py, move subprocess logic to core
+     - Keep UI state management in mplace.py, move subprocess logic to core
 
 #### Stage 5: Extract DZN Generation Logic (Week 2, Days 4-5) - **CRITICAL**
 - **Objective**: Remove the biggest logic blob from UI
