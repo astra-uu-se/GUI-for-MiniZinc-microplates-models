@@ -37,7 +37,7 @@ Follow these steps in order:
   - `minizinc_path = "/Applications/MiniZincIDE.app/Contents/Resources/minizinc"` (macOS example)
   - `plaid_path = "mzn/plate-design.mzn"` (default included model)
   - `plaid_mpc_path = "mzn/plaid_default.mpc"`
-  - `compd_path = "mzn/layout_predicates.mzn"`
+  - `compd_path = "mzn/plate-optimizer.mzn"` (alternative model, currently not included)
   - `compd_mpc_path = "mzn/compd_default.mpc"`
 
 **Step 6: Start the app**
