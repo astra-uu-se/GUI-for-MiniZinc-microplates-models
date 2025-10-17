@@ -34,6 +34,8 @@ This document tracks the progress of key tasks in the MPLACE project.
 | Low      | Expand Export Format Options    | Not done       | Only PNG export currently supported; add PDF, SVG support for publication-quality figures. |
 | Low      | Add Data Consistency Validation | Not done       | No validation that CSV data matches expected DZN parameters; add cross-validation between input and output data. |
 | Low      | Create Data Transfer Objects    | Not done       | Complex parameter passing could use structured objects instead of individual parameters for better maintainability. |
+| Low      | Add Plater CSV Export Support   | Not done       | Add export of layouts to plater's plate-shaped CSV format for R ecosystem integration. Create plate-grid pivot by mapping well coordinates (A01 → row A, col 1) and writing plate-shaped layers (Treatment, Concentration). Implement conversion utilities in core/io_utils.py and expose via UI export options. Easy conversion from current MPLACE CSV format. |
+| Low      | Add Wellmap TOML Export Support | Not done       | Add export of layouts to Wellmap TOML format for microplate metadata exchange. Group wells by compound/concentration patterns to generate [row], [col], and [block] sections with experimental metadata. Implement in core/io_utils.py and expose via UI export options. More complex than Plater format but enables richer experimental design workflows. |
 
 ---
 
@@ -220,4 +222,4 @@ This progress tracking file should be updated after each significant change or b
 
 ---
 
-*Last updated: October 17, 2025 (added detailed reorganization plan for "Separate UI Layout from Logic" priority task)*
+*Last updated: October 17, 2025 (added Plater CSV and Wellmap TOML export support tasks)*
