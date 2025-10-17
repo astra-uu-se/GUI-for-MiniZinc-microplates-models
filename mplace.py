@@ -32,6 +32,8 @@ from typing import Tuple
 from dataclasses import dataclass
 
 import utility as ut
+from core.io_utils import path_show
+from config.loader import load_paths_config
 from models.constants import PlateDefaults, UI, Messages, WindowConfig, System, FileTypes
 
 from ui import window_dzn as wd
@@ -68,7 +70,7 @@ def update_csv_path(path: str) -> None:
     Args:
         path: Path to CSV file
     """
-    ut.path_show(path, label_csv_loaded)
+    path_show(path, label_csv_loaded)
     csv_file_path.set(path)
     logger.info(f"CSV file path updated: {path}")
 
@@ -100,7 +102,7 @@ def on_dzn_generated(result: DznGenerationResult) -> None:
     control_names.set(result.control_names)
     
     # Update UI elements
-    ut.path_show(result.file_path, label_dzn_loaded)
+    path_show(result.file_path, label_dzn_loaded)
     button_run_minizinc.config(state=tk.NORMAL)
     
     print(f"DZN integrated: {result.rows}x{result.cols} plate, controls: {result.control_names}")
@@ -130,7 +132,7 @@ def load_dzn() -> None:
     )
     if path != '':
         try:
-            ut.path_show(path, label_dzn_loaded)
+            path_show(path, label_dzn_loaded)
             dzn_file_path.set(path)
 
             cols, rows, controls_names_text = ut.scan_dzn(path)
@@ -292,7 +294,7 @@ use_compd_flag: tk.BooleanVar = tk.BooleanVar(root)
 use_compd_flag.set(UI.SELECT_PLAID)
 
 try:
-    minizinc_path_s, plaid_path_s, compd_path_s, plaid_mpc_path_s, compd_mpc_path_s = ut.read_paths_ini_file()
+    minizinc_path_s, plaid_path_s, compd_path_s, plaid_mpc_path_s, compd_mpc_path_s = load_paths_config()
     print("Configuration loaded successfully")
     logger.info("Configuration loaded from paths.ini")
 except FileNotFoundError as e:

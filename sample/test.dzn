@@ -1,0 +1,38 @@
+num_rows = 16;
+num_cols = 24;
+
+size_empty_edge = 0;
+size_corner_empty_wells = 0;
+
+horizontal_cell_lines = 1;
+vertical_cell_lines = 1;
+
+allow_empty_wells = true;
+concentrations_on_different_rows = true;
+concentrations_on_different_columns = true;
+replicates_on_different_plates = false;
+replicates_on_same_plate = false;
+
+compounds = 2;
+compound_concentrations = [2, 1];
+compound_names = ["Drug1", "Drug2"];
+compound_replicates = [5, 5];
+compound_concentration_names = 
+[| "0.1", "0.3"
+ | "1", ""
+|];
+compound_concentration_indicators = [];
+
+combinations = 	0;
+combination_names = [];
+combination_concentration_names = [];
+combination_concentrations = 0;
+
+num_controls = 1;
+control_concentrations = [1];
+control_names = ["pos"];
+control_replicates = [10];
+control_concentration_names = 
+[| "100"
+|];
+

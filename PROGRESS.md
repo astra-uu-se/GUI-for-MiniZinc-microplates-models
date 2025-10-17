@@ -120,7 +120,7 @@ mplace/
   3. Fix imports in UI files for constants
   4. Test application works after renames
 
-#### Stage 3: Extract File Operations (Week 1-2)
+#### Stage 3: Extract File Operations (Week 1-2, DONE)
 - **Objective**: Create core utilities for file handling
 - **Tasks**:
   1. Create `core/io_utils.py`:

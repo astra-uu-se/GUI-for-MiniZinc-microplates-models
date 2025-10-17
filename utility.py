@@ -253,29 +253,6 @@ def format_validation_errors(errors: List[str]) -> str:
     return message
 
 
-def read_csv_file(file_path: str) -> List[str]:
-    """Read CSV file and return all lines except header.
-    
-    Args:
-        file_path: Path to the CSV file
-        
-    Returns:
-        List of lines from CSV file (excluding header)
-        
-    Raises:
-        FileNotFoundError: If file cannot be read
-    """
-    try:
-        with open(file_path, 'r') as file:
-            layout_text_array = file.readlines()
-        line_count = len(layout_text_array) - 1  # Exclude header
-        logger.info(f"CSV file loaded: {file_path}, {line_count} data lines")
-        return layout_text_array[1:]  # Remove header
-    except (FileNotFoundError, IOError) as e:
-        logger.error(f"Failed to read CSV file: {file_path}, error: {e}")
-        raise FileNotFoundError(f"Could not read CSV file: {file_path}") from e
-
-
 def scan_dzn(file_path: str) -> Tuple[str, str, str]:
     """Scan DZN file and extract parameters.
     
@@ -391,43 +368,6 @@ def to_number_if_possible(value: str) -> Union[int, float, str]:
             return float(value)
         except ValueError:
             return value
-
-
-def read_paths_ini_file() -> Tuple[str, str, str, str, str]:
-    """Read and parse paths.ini configuration file.
-    
-    Returns:
-        Tuple of (minizinc_path, plaid_path, compd_path, plaid_mpc_path, compd_mpc_path)
-        
-    Raises:
-        FileNotFoundError: If paths.ini file cannot be read
-    """
-    logger.debug("Loading configuration from paths.ini")
-    try:
-        with open('config/paths.ini', 'r') as file:
-            paths_array = file.readlines()
-    except (FileNotFoundError, IOError) as e:
-        logger.error(f"Cannot read paths.ini file: {e}")
-        raise FileNotFoundError("Could not read paths.ini file. Please ensure it exists and is readable.") from e
-    
-    # Initialize variables with defaults
-    minizinc_path = plaid_path = compd_path = plaid_mpc_path = compd_mpc_path = ""
-    
-    for line in paths_array:
-        line_clean = line.strip()
-        if line_clean.startswith(PathsIni.MINIZINC_PREFIX):
-            minizinc_path = line_clean[PathsIni.MINIZINC_OFFSET:].strip('"\'')
-        elif line_clean.startswith(PathsIni.PLAID_PREFIX):
-            plaid_path = line_clean[PathsIni.PLAID_OFFSET:].strip('"\'')
-        elif line_clean.startswith(PathsIni.COMPD_PREFIX):
-            compd_path = line_clean[PathsIni.COMPD_OFFSET:].strip('"\'')
-        elif line_clean.startswith(PathsIni.PLAID_MPC_PREFIX):
-            plaid_mpc_path = line_clean[PathsIni.PLAID_MPC_OFFSET:].strip('"\'')
-        elif line_clean.startswith(PathsIni.COMPD_MPC_PREFIX):
-            compd_mpc_path = line_clean[PathsIni.COMPD_MPC_OFFSET:].strip('"\'')
-    
-    logger.info("Configuration loaded successfully from paths.ini")
-    return minizinc_path, plaid_path, compd_path, plaid_mpc_path, compd_mpc_path
 
 
 def run_cmd(minizinc_path: str, solver_config: str, model_file: str, data_file: str) -> str:
@@ -562,22 +502,6 @@ def callback(P: str) -> bool:
         True if input is valid (digits or empty), False otherwise
     """
     return str.isdigit(P) or P == ""
-
-
-def path_show(path: str, label_object: tk.Label) -> None:
-    """Display truncated path in label widget.
-    
-    Args:
-        path: File path to display
-        label_object: Tkinter label widget to update
-    """
-    if len(path) >= Validation.PATH_DISPLAY_MAX_LENGTH:
-        prefix = Validation.PATH_TRUNCATION_PREFIX
-    else:
-        prefix = ''
-    display_text = 'File loaded: ' + prefix + path[-Validation.PATH_DISPLAY_MAX_LENGTH:]
-    label_object.config(text=display_text)
-    logger.debug(f"UI updated with path: {display_text}")
 
 
 class ToolTip(object):
