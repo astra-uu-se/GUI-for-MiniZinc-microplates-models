@@ -1,106 +1,191 @@
 # MPLACE
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**MPLACE** (**M**icro**P**late **L**ayout **A**rrangement with **C**onstraint **E**ngines) is a simple GUI that streamlines the usage of MiniZinc models for microplate layout generation. Specifically, it is designed to be compatible with [PLAID](https://github.com/pharmbio/plaid) and other future projects.
+**Microplate Layout Arrangement with Constraint Engines**
 
+MPLACE is a desktop app with a graphical interface for generating and visualizing microplate layouts. It runs MiniZinc models (e.g., PLAID) behind the scenes so you don't need to write code. Typical use: define compounds/controls, produce plate layouts, and save figures for reports.
 
-## Requirements
+**Who is this for?**
+- Biomedical researchers and lab staff who want to:
+  - quickly generate microplate layouts from compounds/controls,
+  - run a ready-made model (PLAID),
+  - visualize results without coding.
 
-MPLACE is developed in [Python 3.12.6](https://www.python.org/), and it requires the installation of `numpy` (version 2.1.1 was used) and `matplotlib` (version 3.10.6 was used) packages by using, e.g., the command:
+## Quick Start (about 5–10 minutes)
+
+Follow these steps in order:
+
+**Step 1: Install Python**
+- Windows/macOS: Download and install Python 3.12 or newer from [python.org](https://python.org) (check "Add Python to PATH" on Windows).
+
+**Step 2: Install Python packages**
+- Open Terminal/Command Prompt and paste:
+  - Windows: `pip install numpy matplotlib`
+  - macOS/Linux: `python3 -m pip install numpy matplotlib`
+
+**Step 3: Install MiniZinc**
+- Download and install MiniZinc 2.6.4+ from [minizinc.org](https://minizinc.org)
+- Note: PLAID requires the GeCode solver (bundled with MiniZinc).
+
+**Step 4: Download MPLACE**
+- Click "Code → Download ZIP" or clone the repo, then unzip.
+- Open the unzipped folder in your file explorer.
+
+**Step 5: Configure paths**
+- Open `config/paths.ini` in a text editor and verify/edit:
+  - `minizinc_path = "C:/Program Files/MiniZinc/minizinc.exe"` (Windows example)
+  - `minizinc_path = "/Applications/MiniZincIDE.app/Contents/Resources/minizinc"` (macOS example)
+  - `plaid_path = "mzn/plate-design.mzn"` (default included model)
+  - `plaid_mpc_path = "mzn/plaid_default.mpc"`
+  - `compd_path = "mzn/layout_predicates.mzn"`
+  - `compd_mpc_path = "mzn/compd_default.mpc"`
+
+**Step 6: Start the app**
+- In Terminal/Command Prompt from the MPLACE folder:
+  - Windows: `python mplace.py`
+  - macOS/Linux: `python3 mplace.py`
+
+If the window opens, you're ready to go.
+
+## Installation (details)
+
+**Requirements**
+- Python 3.12+ (3.13 also tested; 3.11 on macOS may have issues)
+- NumPy 2.1+ and Matplotlib 3.10+
+- MiniZinc 2.6.4+ (GeCode solver required for PLAID)
+
+**Install commands**
+- Windows:
+  ```
+  pip install numpy matplotlib
+  ```
+- macOS/Linux:
+  ```
+  python3 -m pip install numpy matplotlib
+  ```
+
+**Known compatibility notes**
+- If the app behaves oddly on Python 3.11/macOS, try Python 3.12 or 3.13.
+
+## Configure (paths.ini explained)
+
+Open `config/paths.ini` and check or edit the following lines:
+- `minizinc_path`: full path to your MiniZinc executable
+- `plaid_path`: the PLAID model file (included under mzn/, version of 30 September 2025)
+- `compd_path`: another model (currently not included)
+- `plaid_mpc_path`, `compd_mpc_path`: solver configuration files (included under mzn/)
+
+**Example (Windows):**
+```ini
+minizinc_path = "C:/Program Files/MiniZinc/minizinc.exe"
+plaid_path = "mzn/plate-design.mzn"
+compd_path = "mzn/plate-optimizer.mzn"
+plaid_mpc_path = "mzn/plaid_default.mpc"
+compd_mpc_path = "mzn/compd_default.mpc"
 ```
-python -m pip install numpy matplotlib
+
+**Example (macOS):**
+```ini
+minizinc_path = "/Applications/MiniZincIDE.app/Contents/Resources/minizinc"
+plaid_path = "mzn/plate-design.mzn"
+compd_path = "mzn/plate-optimizer.mzn"
+plaid_mpc_path = "mzn/plaid_default.mpc"
+compd_mpc_path = "mzn/compd_default.mpc"
 ```
 
-Earlier versions of Python and the packages are likely to work, but it is not guaranteed. If the tool does not work or works with some errors, first ensure that you are running the latest versions of Python and its packages (e.g. it has been observed that the tool works poorly on Python 3.11 on MacOS, while upgrading to Python 3.13 solved all of the issues).
+## Use the App (typical workflow)
 
-PLAID requires MiniZinc 2.6.4+ (earlier versions might work, but it is not guaranteed).
+**1) Generate or load a model file (*.dzn)**
+- Click "Generate *.dzn file" to define:
+  - Desired layout configurations
+  - Rows/columns of the plate
+  - Compounds and their concentrations
+  - Controls and their concentrations
+- Alternatively, click "Load *.dzn file" if you already have one.
 
-The GUI elements are developed by using the `tkinter` library. It is lightweight and is a Python standard library, although it is somewhat rigid compared to alternatives, such as PyQt6. Thus, there are some limitations on what is possible to accomplish
+*Tip: You can prepare the compound/control lists with the included Excel file `tools/Convert the compounds and controls.xlsx`.*
 
-## Description
+**2) Run the model to produce a layout (*.csv)**
+- Click "Run a model".
+- Choose PLAID (default) or Other.
+- Save the resulting CSV when prompted.
 
-This tool allows a user to:
+**3) Load an existing layout (*.csv) (optional)**
+- If you already have a layout file, click "Load *.csv file".
 
-  - generate and save a `*.dzn` file with a GUI in a separate window (similar to PLAID [web-page](https://plaid.pharmb.io/))
-  - load an existing `*.dzn` file (an input data file, it is an optional step)
-  - load an existing `*.csv` file (a microplate layout file, i.e. the results of executing the model)
-  - launch MiniZinc, which will take the loaded input file and a selected model file (PLAID or another one)
-  - visualize the loaded (or generated) layout `*.csv` file in a separate window, where every material (control or drug compound) is represented as a square. The visualization can be enhanced by also loading `*.dzn` file (this enables representing the controls as circles). Note that it automatically saves the figures as `*.png` files
+**4) Visualize the layout**
+- Click "Visualize *.csv".
+- A new window opens with:
+  - Plate view tabs (one per layout)
+  - A panel showing materials and concentration scales
+- Figures are automatically saved as PNG files next to your CSV.
 
-Future plans:
+**What the app produces**
+- CSV: layout with wells and materials
+- PNG: plate visualization (auto-saved)
+- Optional: You can enhance the visualization by loading a *.dzn file so controls are shown as circles.
 
-  - using a colormap with a larger number (at least 50) of distinct colors
+## Input Tips: Compounds/Controls Format
 
-Limitations:
-  - for simplicity of development, it is not possible to select custom names and locations for saved `*.png` files. We use the name and location of the `*.csv` file (possibly will be addressed in the future)
-  - MPLACE currently uses the `tab20` colormap, i.e. 20 distinct colors, meaning that the project repeats the same colors when the number of materials is larger than 20
+When generating a *.dzn, compounds and controls are entered as Python-like dictionaries, for example:
+- **Compounds:**
+  ```
+  {'Drug1': [5, '0.1', '0.3'], 'Drug2': [10, '1']}
+  ```
+- **Controls:**
+  ```
+  {'pos': [8, '100'], 'neg': [8, '0'], 'DMSO': [16, '100']}
+  ```
 
+- The number is "replicates"
+- Strings are concentrations (numbers or labels)
+- Use single quotes as shown
 
-## Installation and setting up of MPLACE
+## FAQ and Troubleshooting
 
-  1. Install Python (3.12+ recommended) with `numpy` (2.1+ recommended) and `matplotlib` (3.10+ recommended) packages (you can read the articles on how to install [Python](https://www.wikihow.com/Install-Python) and [the packages](https://packaging.python.org/en/latest/tutorials/installing-packages/))
-  2. (Optional) Download [PLAID](https://github.com/pharmbio/plaid) and/or other model files (`*.mzn`) and copy them to a desired location. We already supplement the forked version of PLAID, which is compatible with the GUI (there are a few options that were added)
-  3. Install [MiniZinc](https://www.minizinc.org/)
-  4. Download and unzip MPLACE at a location of your choosing (by default, the project uses `mzn/` folder)
-  5. Configure paths to MiniZinc, PLAID and/or another model files in the `config/paths.ini` file (PLAID files are already supplied by the GUI, the version of September 30, 2025)
-  6. (optional) Update solver configuration files for PLAID and/or another model (by default, `mzn/plaid_default.mpc` and `mzn/compd_default.mpc`, respectively) if you want to switch a solver or change the number of threads used by the solver. You can create additional solver configuration files as well (e.g., if you want to try different settings). Additional notes:
-     
-       - PLAID can only work with GeCode
-       - Non-PLAID layout quality might depend on the timeout, i.e., if you are unsatisfied with a solution, you can try to increase the timeout from 180s to e.g., 300s
+**The app doesn't start**
+- Ensure Python is installed and accessible from Terminal/Command Prompt (`python --version`).
+- Try `python3` instead of `python` on macOS/Linux.
 
-## Launching MPLACE
+**"MiniZinc not found" or model fails to run**
+- Check `minizinc_path` in `config/paths.ini`
+- To locate MiniZinc installation:
+  - Windows: Usually `C:/Program Files/MiniZinc/minizinc.exe`
+  - macOS: Try `/Applications/MiniZincIDE.app/Contents/Resources/minizinc` or `/usr/local/bin/minizinc`
+  - Linux: Try `/usr/bin/minizinc` or `which minizinc` in terminal
+- Ensure MiniZinc 2.6.4+ is installed with GeCode solver.
 
-To launch the MPLACE, you need to execute the Python script `mplace.py`, e.g., by using the command `python3 mplace.py` in the terminal.
+**The window opens, but visualization fails**
+- Check that your CSV has data rows and a header.
+- Try re-running the model and saving the CSV again.
 
-These are tutorials that can help you learn how to execute Python scripts:
+**Colors repeat with many materials**
+- Current palette has ~20 distinct colors. Future versions will expand to 50+.
 
-  - [W3HTMLschool](https://w3htmlschool.com/howto/how-to-run-a-python-script-a-beginners-guide/)
-  - [WikiHow](https://www.wikihow.com/Use-Windows-Command-Prompt-to-Run-a-Python-File)
-  - [Real Python](https://realpython.com/run-python-scripts/)
-  - [Python Basics](https://pythonbasics.org/execute-python-scripts/)
+**PNGs save to weird locations**
+- For simplicity, images are saved next to the CSV file with a generated name.
 
-## Using the MPLACE
+## Advanced (optional)
 
-After you set up MPLACE and launch it, you can do the following order of operations:
+**Switching solvers/threads**
+- Edit `mzn/plaid_default.mpc` or `mzn/compd_default.mpc` to change solver settings (e.g., threads).
 
-  1. Generate or load a model file. Having a loaded model fine is optional, but it can serve two purposes:
+**Timeouts**
+- For non-PLAID models, you may need to increase the timeout from 180s to 300s or higher if results are unsatisfactory.
 
-      - A model file is useful for the visualisation since it provides the names of controls explicitly. When you visualise a layout, the controls will be represented as circles, not squares, as the rest of the materials.
-      - A model file is used to generate a `*.csv` file with a microplate layout, if a layout does not exist yet.
-  
-      If you have an existing `*.csv` file, then you can skip this step.
-  
-      If you don't have a pre-made `*.dzn` file, then press `Generate *.dzn file` button. Otherwise, you can load an existing file with `Load *.dzn file` button.
-  
-  2. If a model file is loaded (either from an existing `*.dzn` file or by generating it), then you can run a MiniZinc model (PLAID or another one) by pressing `Run a model` button to produce a layout saved in a separate `*.csv` file. After the layout is generated, it is automatically loaded.
-     
-  3. As an alternative to the previous step, if you already have a `*.csv` file with a layout, you can load it directly by pressing `Load *.csv file` button
-     
-  4. When you get a `*.csv` file loaded (either by running a model or loading it), you can press the `Visualize *.csv` to get a visual representation of a layout, where each square represents a specific material. Note that if you also loaded a `*.dzn` file, the controls will be shown as circles.
+**Models**
+- The repo includes model files under `mzn/`. You can point `paths.ini` to other model files if needed.
 
+## Roadmap Highlights
 
-## Notes about generating the model file
-
-If an option to generate a `*.dzn` file is selected, the user must fill in fields listing all compounds and their corresponding concentrations.
-
-I recommend using the Google Sheets page [here](https://docs.google.com/spreadsheets/d/1POLf0_XsRGgFjiWLKvvFxO5cGRLwQZ6w1bvRX51-Rf0/edit?usp=sharing) to automatically generate the lines. Just copy the resulting text and paste it into the corresponding fields. We also include the Excel file (`Convert the compounds and controls.xlsx`) with the same macro here in the repository, if you wish for an offline solution.
-
-If a user is interested in creating the list manually (or with a script of their own), it is possible to do so. The project uses the format of Python dictionaries of `{'Material1': [number_of_replicates1, 'Concentration11',...], 'Material2': [number_of_replicates2, 'Concentration21',...], ...}`
-
-Example 1: `{'Drug1': [5, 'Concentration 1', 'Concentration 2'], 'Drug2': [10, '0.1', '0.5, '10']}`, which means that we will have:
-  - `Drug1` in concentrations `Concentration 1` and `Concentration 2` (5 replicates each) and
-  - `Drug2` in concentrations `0.1`, `0.5`, and `10` (10 replicates each).
-
-Example 2: `{'Control1': [5, 'Concentration 1', 'Concentration 2'], 'Control2': [10, '100'], 'Control3': [3, '100']},` where we have three types of controls:
-  - `Control1` in concentrations `Concentration 1` and `Concentration 2` (5 replicates each),
-  - `Control2` in concentration `100` (10 replicates), and
-  - `Control3` in concentration `100` (10 replicates).
-
-As you can see, the dictionary format allows us to use a variable number of drugs/controls, where each drug/control can have its own number of replicates and/or the list of concentrations (and whether or not the concentrations are given in textual or numerical forms). The idea is to have a simple yet flexible format, no matter the configuration of materials and concentrations.
+- More distinct colors for materials (≥50)
+- Optional exports to standard formats (e.g., Plater CSV, Wellmap TOML)
+- Progress indicators for long runs
 
 ## Credits
 
 MPLACE is developed by [Ramiz Gindullin](https://orcid.org/0000-0003-4947-9641)
 
 ## License
+
 MPLACE is under Apache 2.0 LICENSE. The author accepts no responsibility or liability for the use of the project or any direct or indirect damages arising out of its use.
