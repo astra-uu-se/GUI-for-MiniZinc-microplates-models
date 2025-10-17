@@ -1,9 +1,0 @@
-{
-    "-O": 1,
-    "free-search": false,
-    "intermediate-solutions": false,
-    "output-objective": true,
-    "output-time": true,
-    "solver": "org.gecode.gecode",
-	"parallel": 4
-}
