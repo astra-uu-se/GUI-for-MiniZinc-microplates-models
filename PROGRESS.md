@@ -15,7 +15,7 @@ This document tracks the progress of key tasks in the MPLACE project.
 | Medium   | Code Style Standardization      | Done           | Comprehensive docstrings added to all functions with Args, Returns, Raises sections; consistent comment formatting throughout; proper type annotations on function parameters and returns. |
 | Medium   | Add Comprehensive Type Hints    | Done           | Complete type annotations added across all modules using typing imports (List, Dict, Tuple, Union, Sequence); function signatures, class attributes, and global variables properly typed; numpy arrays and complex generic types annotated. |
 | Medium   | Implement Consistent Naming Conventions | Done        | Constants converted to UPPERCASE (LETTERS_CAPITAL, LETTERS_LOWERCASE); variables use descriptive names (drugs, controls, num_rows, num_cols); UI elements follow consistent snake_case naming; preserved COMPD tool-specific naming. |
-| Medium   | Extract Constants and Magic Numbers | Not done    | Magic numbers and strings scattered throughout (grid padding, widget sizes, default values); need centralized constants module for maintainability. |
+| Medium   | Extract Constants and Magic Numbers | Done        | Comprehensive constants.py module with organized classes (PlateDefaults, UI, Visualization, Performance, PathsIni, Messages, WindowConfig, MaterialDefaults, FileTypes, Validation, System); extracted 60+ magic numbers including plate dimensions, UI padding, widget sizes, visualization parameters, path parsing strings/offsets, and default values; significantly improved maintainability. |
 | Medium   | Separate UI Layout from Logic    | Not done       | WindowGenDZN mixes UI setup with business logic; need clear separation between interface definition and data processing. |
 | Low      | Cache Coordinate Transformations | Done           | Added @lru_cache(maxsize=2048) decorator to transform_coordinate function in utility.py; provides significant performance improvement for repeated well coordinate processing across materials and layouts. |
 | Low      | Precompute Alpha Mappings        | Done           | Precompute transform_concentrations_to_alphas once per material in draw_plates() and pass to draw_plate() and draw_material_scale(); eliminates repeated alpha calculation across layouts and significantly improves visualization performance for multi-layout datasets. |
@@ -47,4 +47,4 @@ This progress tracking file should be updated after each significant change or b
 
 ---
 
-*Last updated: October 16, 2025 (completed comprehensive input validation layer implementation)*
+*Last updated: October 16, 2025 (completed comprehensive constants extraction with organized class-based structure)*

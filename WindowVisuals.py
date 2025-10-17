@@ -36,6 +36,7 @@ import ast
 from typing import List, Dict, Sequence, Union
 
 from utility import transform_coordinate, read_csv_file, transform_concentrations_to_alphas, to_number_if_possible
+from constants import Visualization, Performance, PlateDefaults, UI, WindowConfig, Messages
 
 # Cache colormap at module level for performance optimization
 COLORMAP_TAB20 = pyplot.get_cmap('tab20')
@@ -45,7 +46,7 @@ logger = logging.getLogger(__name__)
 
 
 def draw_plates(parent: tk.Widget, figure_name_template: str, text_array: Sequence[str], 
-                num_rows: int = 16, num_cols: int = 24, control_names: Sequence[str] = ()) -> None:
+                num_rows: int = PlateDefaults.ROWS_INT, num_cols: int = PlateDefaults.COLS_INT, control_names: Sequence[str] = ()) -> None:
     """Load CSV data, analyze it, split into layouts, and draw plates with material scales.
     
     Args:
@@ -101,7 +102,7 @@ def draw_plates(parent: tk.Widget, figure_name_template: str, text_array: Sequen
     for material in sorted(concentrations_list.keys()):
         material_colors[material] = np.array(COLORMAP_TAB20(color_index)[:3])
         color_index += 1
-        if color_index >= 20:
+        if color_index >= Performance.COLORMAP_COLOR_LIMIT:
             color_index = 0
 
     # Create main plate visualization tabs
@@ -110,11 +111,11 @@ def draw_plates(parent: tk.Widget, figure_name_template: str, text_array: Sequen
         draw_plate(tab_control, figure_name_template, layout,
                    layouts_dict[layout], material_colors, alpha_mappings, 
                    num_rows, num_cols, control_names)
-    tab_control.grid(row=0, column=0, padx=10, pady=2)
+    tab_control.grid(row=0, column=0, padx=UI.FRAME_PADDING, pady=UI.SMALL_PADDING)
 
     # Create scrollable material scale panel
-    tab_control2 = ttk.Frame(parent, width=400)
-    canvas_right = tk.Canvas(tab_control2, width=400, height=500)
+    tab_control2 = ttk.Frame(parent, width=Visualization.MATERIAL_PANEL_WIDTH)
+    canvas_right = tk.Canvas(tab_control2, width=Visualization.MATERIAL_PANEL_WIDTH, height=Visualization.MATERIAL_PANEL_HEIGHT)
     canvas_right.pack(side="left", fill="both", expand=True)
 
     scrollbar = ttk.Scrollbar(tab_control2, orient="vertical",
@@ -135,7 +136,7 @@ def draw_plates(parent: tk.Widget, figure_name_template: str, text_array: Sequen
                             material_color, concentration_material, alpha_mappings[material])
 
     canvas_right.create_window((0, 0), window=scrollable_frame, anchor="nw")
-    tab_control2.grid(row=0, column=1, padx=10, pady=2)
+    tab_control2.grid(row=0, column=1, padx=UI.FRAME_PADDING, pady=UI.SMALL_PADDING)
 
 
 def update_scroll_region(event: tk.Event, canvas: tk.Canvas) -> None:
@@ -150,7 +151,7 @@ def update_scroll_region(event: tk.Event, canvas: tk.Canvas) -> None:
 
 def draw_plate(parent: ttk.Notebook, figure_name_template: str, layout: str, layout_array: Sequence[Sequence[str]],
                material_colors: Dict[str, np.ndarray], alpha_mappings: Dict[str, Dict[Union[str, float, int], float]],
-               num_rows: int = 16, num_cols: int = 24, control_names: Sequence[str] = ()) -> None:
+               num_rows: int = PlateDefaults.ROWS_INT, num_cols: int = PlateDefaults.COLS_INT, control_names: Sequence[str] = ()) -> None:
     """Draw a single microplate layout visualization.
     
     Args:
@@ -209,8 +210,8 @@ def draw_plate(parent: ttk.Notebook, figure_name_template: str, layout: str, lay
                     [y_coord, x_coord] = transform_coordinate(well[0])
                 else:
                     [x_coord, y_coord] = transform_coordinate(well[0])
-                x_coords.append(x_coord + 0.5)
-                y_coords.append(y_coord + 0.5)
+                x_coords.append(x_coord + Visualization.WELL_COORDINATE_OFFSET)
+                y_coords.append(y_coord + Visualization.WELL_COORDINATE_OFFSET)
                 
                 try:
                     alphas.append(alpha_values[to_number_if_possible(well[2])])
@@ -219,7 +220,7 @@ def draw_plate(parent: ttk.Notebook, figure_name_template: str, layout: str, lay
                     alphas.append(alpha_values[well[2]])
 
             colors = [material_colors[material] for i in range(len(x_coords))]
-            ax.scatter(x_coords, y_coords, marker=marker, c=colors, s=80,
+            ax.scatter(x_coords, y_coords, marker=marker, c=colors, s=Visualization.SCATTER_MARKER_SIZE,
                        edgecolor='black', alpha=alphas)
 
         ax.set_xlim(0, num_rows)
@@ -274,7 +275,7 @@ def draw_material_scale(parent: tk.Widget, material_name: str, color: np.ndarray
     rgba_colors[:, :, 3] = alphas  # Set alpha for the alpha channel
 
     # Create Figure
-    fig = Figure(figsize=(4, 2))
+    fig = Figure(figsize=(Visualization.SCALE_FIGURE_WIDTH, Visualization.SCALE_FIGURE_HEIGHT))
     try:
         ax = fig.add_subplot(111)
 
@@ -291,7 +292,7 @@ def draw_material_scale(parent: tk.Widget, material_name: str, color: np.ndarray
         canvas = FigureCanvasTkAgg(fig, master=tab2)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True)
-        tab2.pack(fill="both", expand=True, padx=1, pady=5)
+        tab2.pack(fill="both", expand=True, padx=UI.WIDGET_SPACING, pady=UI.WIDGET_SPACING_LARGE)
 
         # Store canvas reference for cleanup
         tab2.canvas_ref = canvas
@@ -308,7 +309,7 @@ def draw_material_scale(parent: tk.Widget, material_name: str, color: np.ndarray
 
 
 def visualize(file_path: str, figure_name_template: str, rows: str, cols: str, 
-              control_names: str = '[]') -> None:
+              control_names: str = PlateDefaults.CONTROL_NAMES) -> None:
     """Main visualization window for microplate layouts.
     
     Args:
@@ -334,11 +335,11 @@ def visualize(file_path: str, figure_name_template: str, rows: str, cols: str,
 
     logger.info("Opening visualization window")
     window: tk.Tk = tk.Tk()
-    window.title("Visualize GUI")
+    window.title(WindowConfig.TITLE_VISUALIZER)
     window.protocol('WM_DELETE_WINDOW', cleanup_and_close)  # Handle window X button
 
     # Add close button
-    quit_button: ttk.Button = ttk.Button(window, text='close window')
+    quit_button: ttk.Button = ttk.Button(window, text=Messages.BUTTON_CLOSE)
     quit_button.grid(row=0, column=0, columnspan=2)
     quit_button.configure(command=cleanup_and_close)
 
@@ -346,7 +347,7 @@ def visualize(file_path: str, figure_name_template: str, rows: str, cols: str,
         draw_plates(window, figure_name_template, read_csv_file(file_path),
                     num_rows=int(rows), num_cols=int(cols), 
                     control_names=ast.literal_eval(control_names))
-        window.geometry('+%d+%d' % (10, 10))
+        window.geometry(f'+{WindowConfig.VIZ_WINDOW_X}+{WindowConfig.VIZ_WINDOW_Y}')
         logger.debug("Visualization window geometry set, entering mainloop")
         window.mainloop()
     except Exception as e:

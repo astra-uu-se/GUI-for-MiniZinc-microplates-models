@@ -32,6 +32,7 @@ from typing import Tuple
 from dataclasses import dataclass
 
 import utility as ut
+from constants import PlateDefaults, UI, Messages, WindowConfig, System, FileTypes
 
 import WindowVisuals as wv
 import WindowGenDZN as wd
@@ -76,12 +77,12 @@ def reset_all() -> None:
     """Reset all form fields and UI state to defaults."""
     dzn_file_path.set('')
     csv_file_path.set('')
-    num_rows.set('16')
-    num_cols.set('24')
-    control_names.set("[]")
-    use_compd_flag.set('PLAID')
-    label_dzn_loaded.config(text='No *.dzn file is loaded')
-    label_csv_loaded.config(text='No *.csv file is loaded')
+    num_rows.set(PlateDefaults.ROWS)
+    num_cols.set(PlateDefaults.COLS)
+    control_names.set(PlateDefaults.CONTROL_NAMES)
+    use_compd_flag.set(UI.SELECT_PLAID)
+    label_dzn_loaded.config(text=Messages.NO_DZN_LOADED)
+    label_csv_loaded.config(text=Messages.NO_CSV_LOADED)
     button_run_minizinc.config(state=tk.DISABLED)
     logger.info("Application state reset to defaults")
 
@@ -125,7 +126,7 @@ def load_dzn() -> None:
     """Load DZN file, extract information, and update UI."""
     path = tk.filedialog.askopenfilename(
         title='open dzn file',
-        filetypes=[('dzn files', '*.dzn')]
+        filetypes=FileTypes.DZN_FILES
     )
     if path != '':
         try:
@@ -150,7 +151,7 @@ def load_csv() -> None:
     """Load CSV file and update UI."""
     path = tk.filedialog.askopenfilename(
         title='open csv file',
-        filetypes=[('csv files', '*.csv')]
+        filetypes=FileTypes.CSV_FILES
     )
     if path != '':
         try:
@@ -167,20 +168,21 @@ def load_csv() -> None:
 
 def run_minizinc() -> None:
     """Launch MiniZinc model and write results to CSV file."""
-    if use_compd_flag.get() == 'COMPD':
+    if use_compd_flag.get() == True:
         solver_config = compd_mpc_path.get()
         model_file = compd_path.get()
+        print(f"Running {Messages.MODEL_OTHER} model...")
+        logger.info(f"Starting MiniZinc execution with {Messages.MODEL_OTHER} model")
     else:
         solver_config = plaid_mpc_path.get()
         model_file = plaid_path.get()
-
-    print(f"Running {use_compd_flag.get()} model...")
-    logger.info(f"Starting MiniZinc execution with {use_compd_flag.get()} model")
-
+        print(f"Running {Messages.MODEL_PLAID} model...")
+        logger.info(f"Starting MiniZinc execution with {Messages.MODEL_PLAID} model")
+    
     # Store original label text to restore on failure
     original_label_text = label_csv_loaded.cget("text")
     label_csv_loaded.config(text='Running the model...')
-    time.sleep(0.25)
+    time.sleep(System.UI_UPDATE_DELAY)
     
     try:
         cmd_to_str = ut.run_cmd(minizinc_path.get(), solver_config,
@@ -188,7 +190,7 @@ def run_minizinc() -> None:
         label_csv_loaded.config(text='Done...')
 
         path = tk.filedialog.asksaveasfilename(
-            defaultextension=".csv", filetypes=[('csv files', '*.csv')])
+            defaultextension=".csv", filetypes=FileTypes.CSV_FILES)
 
         print(f"Saving results to: {path}")
         logger.info(f"User selected CSV save path: {path}")
@@ -226,7 +228,11 @@ def visualize() -> None:
     """Launch visualization window for CSV data."""
     if csv_file_path.get() != '':
         try:
-            figure_name_template = csv_file_path.get()[:-3] + '_' + use_compd_flag.get() + '_'
+            if use_compd_flag.get():
+                model_name = Messages.MODEL_OTHER
+            else:
+                model_name = Messages.MODEL_PLAID
+            figure_name_template = csv_file_path.get()[:-4] + '_' + model_name + '_'
             print(f"Opening visualization for: {csv_file_path.get()}")
             logger.info(f"Starting visualization: CSV={csv_file_path.get()}, template={figure_name_template}")
             
@@ -250,8 +256,8 @@ def on_close() -> None:
         root.destroy()
 
 
-if sys.platform.startswith('win'):
-    os.system('chcp 65001')  # Change code page to UTF-8
+if sys.platform.startswith(System.WINDOWS_PLATFORM_PREFIX):
+    os.system(System.WINDOWS_CODEPAGE_UTF8)  # Change code page to UTF-8
 
 # Log application startup
 logger.info("MPLACE application starting up")
@@ -261,7 +267,7 @@ logger.info("MPLACE application starting up")
 # ------------------------------
 
 root: tk.Tk = tk.Tk()
-root.title("MPLACE")
+root.title(WindowConfig.TITLE_MAIN)
 root.resizable(False, False)
 
 # Close both the root window and WindowGenDZN properly
@@ -274,16 +280,16 @@ csv_file_path.set('')
 
 num_cols: tk.StringVar = tk.StringVar(root)
 num_rows: tk.StringVar = tk.StringVar(root)
-num_cols.set('16')
-num_rows.set('24')
+num_cols.set(PlateDefaults.COLS)
+num_rows.set(PlateDefaults.ROWS)
 
 control_names: tk.StringVar = tk.StringVar(root)
-control_names.set('[]')
+control_names.set(PlateDefaults.CONTROL_NAMES)
 
 vcmd: Tuple = (root.register(ut.callback))
 
-use_compd_flag: tk.StringVar = tk.StringVar(root)
-use_compd_flag.set('PLAID')
+use_compd_flag: tk.BooleanVar = tk.BooleanVar(root)
+use_compd_flag.set(UI.SELECT_PLAID)
 
 try:
     minizinc_path_s, plaid_path_s, compd_path_s, plaid_mpc_path_s, compd_mpc_path_s = ut.read_paths_ini_file()
@@ -312,35 +318,35 @@ compd_mpc_path.set(compd_mpc_path_s)
 # ------------------------------
 
 # Frame 1: DZN file generation/loading
-frame_dzn: ttk.LabelFrame = ttk.LabelFrame(root, text='Step 1 - Generate OR load the *.dzn file:')
-frame_dzn.pack(expand=True, fill="both", padx=10, pady=10)
+frame_dzn: ttk.LabelFrame = ttk.LabelFrame(root, text=Messages.FRAME_TITLE_DZN)
+frame_dzn.pack(expand=True, fill="both", padx=UI.FRAME_PADDING, pady=UI.FRAME_PADDING)
 button_generate_dzn: ttk.Button = ttk.Button(
-    frame_dzn, width=13, state=tk.NORMAL, text='Generate *.dzn file')
+    frame_dzn, width=UI.BUTTON_WIDTH_STANDARD, state=tk.NORMAL, text=Messages.BUTTON_GENERATE_DZN)
 button_load_dzn: ttk.Button = ttk.Button(
-    frame_dzn, width=13, state=tk.NORMAL, text='Load *.dzn file')
-label_dzn_loaded: tk.Label = tk.Label(frame_dzn, text='No *.dzn file is loaded')
+    frame_dzn, width=UI.BUTTON_WIDTH_STANDARD, state=tk.NORMAL, text=Messages.BUTTON_LOAD_DZN)
+label_dzn_loaded: tk.Label = tk.Label(frame_dzn, text=Messages.NO_DZN_LOADED)
 
-frame_dzn.columnconfigure(0, weight=1)
-frame_dzn.columnconfigure(1, weight=1)
+frame_dzn.columnconfigure(0, weight=UI.GRID_WEIGHT)
+frame_dzn.columnconfigure(1, weight=UI.GRID_WEIGHT)
 
 button_generate_dzn.grid(row=0, column=0, columnspan=1, sticky="ew")
 button_load_dzn.grid(row=0, column=1, columnspan=1, sticky="ew")
 label_dzn_loaded.grid(row=1, column=0, columnspan=2, sticky="w")
 
 # Frame 2: CSV file generation/loading
-frame_csv: ttk.LabelFrame = ttk.LabelFrame(root, text='Step 2 - Generate OR load the layout (*.csv):')
-frame_csv.pack(expand=True, fill="both", padx=10, pady=10)
-button_run_minizinc: ttk.Button = ttk.Button(frame_csv, width=13, state=tk.DISABLED, text='Run a model')
+frame_csv: ttk.LabelFrame = ttk.LabelFrame(root, text=Messages.FRAME_TITLE_CSV)
+frame_csv.pack(expand=True, fill="both", padx=UI.FRAME_PADDING, pady=UI.FRAME_PADDING)
+button_run_minizinc: ttk.Button = ttk.Button(frame_csv, width=UI.BUTTON_WIDTH_STANDARD, state=tk.DISABLED, text=Messages.BUTTON_RUN_MODEL)
 button_load_csv: ttk.Button = ttk.Button(
-    frame_csv, width=13, state=tk.NORMAL, text='Load *.csv file')
-label_csv_loaded: tk.Label = tk.Label(frame_csv, text='No *.csv file is loaded')
-radio_plaid: ttk.Radiobutton = ttk.Radiobutton(frame_csv, text='PLAID',
-                              value='PLAID', variable=use_compd_flag)
-radio_compd: ttk.Radiobutton = ttk.Radiobutton(frame_csv, text='Other',
-                              value='COMPD', variable=use_compd_flag)
+    frame_csv, width=UI.BUTTON_WIDTH_STANDARD, state=tk.NORMAL, text=Messages.BUTTON_LOAD_CSV)
+label_csv_loaded: tk.Label = tk.Label(frame_csv, text=Messages.NO_CSV_LOADED)
+radio_plaid: ttk.Radiobutton = ttk.Radiobutton(frame_csv, text=Messages.MODEL_PLAID,
+                              value=UI.SELECT_PLAID, variable=use_compd_flag)
+radio_compd: ttk.Radiobutton = ttk.Radiobutton(frame_csv, text=Messages.MODEL_OTHER,
+                              value=UI.SELECT_OTHER, variable=use_compd_flag)
 
-frame_csv.columnconfigure(0, weight=1)
-frame_csv.columnconfigure(1, weight=1)
+frame_csv.columnconfigure(0, weight=UI.GRID_WEIGHT)
+frame_csv.columnconfigure(1, weight=UI.GRID_WEIGHT)
 
 radio_plaid.grid(row=0, column=0, columnspan=1, sticky="")
 radio_compd.grid(row=0, column=1, columnspan=1, sticky="")
@@ -349,22 +355,22 @@ button_load_csv.grid(row=1, column=1, columnspan=1, sticky="ew")
 label_csv_loaded.grid(row=2, column=0, columnspan=2, sticky="w")
 
 # Frame 3: Visualization
-frame_matplotlib: ttk.LabelFrame = ttk.LabelFrame(root, text='Step 3 - Visualize the layout (*.csv):')
-frame_matplotlib.pack(expand=True, fill="both", padx=10, pady=10)
-label_rows: tk.Label = tk.Label(frame_matplotlib, text='nb rows:')
-entry_rows: ttk.Entry = ttk.Entry(frame_matplotlib, textvariable=num_rows, width=6,
+frame_matplotlib: ttk.LabelFrame = ttk.LabelFrame(root, text=Messages.FRAME_TITLE_VIZ)
+frame_matplotlib.pack(expand=True, fill="both", padx=UI.FRAME_PADDING, pady=UI.FRAME_PADDING)
+label_rows: tk.Label = tk.Label(frame_matplotlib, text=Messages.LABEL_ROWS)
+entry_rows: ttk.Entry = ttk.Entry(frame_matplotlib, textvariable=num_rows, width=UI.ENTRY_WIDTH_NUMERIC,
                        validate='all', validatecommand=(vcmd, '%P'))
-label_cols: tk.Label = tk.Label(frame_matplotlib, text='nb cols:')
-entry_cols: ttk.Entry = ttk.Entry(frame_matplotlib, textvariable=num_cols, width=6,
+label_cols: tk.Label = tk.Label(frame_matplotlib, text=Messages.LABEL_COLS)
+entry_cols: ttk.Entry = ttk.Entry(frame_matplotlib, textvariable=num_cols, width=UI.ENTRY_WIDTH_NUMERIC,
                        validate='all', validatecommand=(vcmd, '%P'))
 button_visualize: ttk.Button = ttk.Button(
-    frame_matplotlib, width=13, state=tk.NORMAL, text='Visualize *.csv')
-button_reset_all: ttk.Button = ttk.Button(frame_matplotlib, width=13, text='Reset all')
+    frame_matplotlib, width=UI.BUTTON_WIDTH_STANDARD, state=tk.NORMAL, text=Messages.BUTTON_VISUALIZE)
+button_reset_all: ttk.Button = ttk.Button(frame_matplotlib, width=UI.BUTTON_WIDTH_STANDARD, text=Messages.BUTTON_RESET)
 
-frame_matplotlib.columnconfigure(0, weight=1)
-frame_matplotlib.columnconfigure(1, weight=1)
-frame_matplotlib.columnconfigure(2, weight=1)
-frame_matplotlib.columnconfigure(3, weight=1)
+frame_matplotlib.columnconfigure(0, weight=UI.GRID_WEIGHT)
+frame_matplotlib.columnconfigure(1, weight=UI.GRID_WEIGHT)
+frame_matplotlib.columnconfigure(2, weight=UI.GRID_WEIGHT)
+frame_matplotlib.columnconfigure(3, weight=UI.GRID_WEIGHT)
 
 label_rows.grid(row=0, column=0, columnspan=1, sticky="w")
 entry_rows.grid(row=0, column=1, columnspan=1, sticky="w")

@@ -31,6 +31,7 @@ import ast
 import re
 
 import utility as ut
+from constants import PlateDefaults, UI, WindowConfig, MaterialDefaults, FileTypes
 
 # Configure logging for DZN generation module
 logger = logging.getLogger(__name__)
@@ -203,7 +204,7 @@ def generate_dzn_file() -> None:
 
     # Step 2 - Save the results
     path = tk.filedialog.asksaveasfilename(
-        defaultextension=".dzn", filetypes=[('dzn files', '*.dzn')])
+        defaultextension=".dzn", filetypes=FileTypes.DZN_FILES)
 
     if path is None or path == '':
         logger.info("DZN save cancelled by user")
@@ -249,17 +250,17 @@ def reset_dzn() -> None:
     flag_replicates_on_different_plates.set(False)
     flag_replicates_on_same_plate.set(False)
 
-    num_rows.set('16')
-    num_cols.set('24')
+    num_rows.set(PlateDefaults.ROWS)
+    num_cols.set(PlateDefaults.COLS)
 
     inner_empty_edge.set(True)
-    size_empty_edge.set('0')
-    size_corner_empty_wells.set('0')
-    horizontal_cell_lines.set('1')
-    vertical_cell_lines.set('1')
+    size_empty_edge.set(PlateDefaults.EMPTY_EDGE_SIZE)
+    size_corner_empty_wells.set(PlateDefaults.CORNER_EMPTY_WELLS)
+    horizontal_cell_lines.set(PlateDefaults.CELL_LINES)
+    vertical_cell_lines.set(PlateDefaults.CELL_LINES)
 
-    drugs.set("{'Drug1': [5,'0.1', '0.3'], 'Drug2': [5, '0.1', '0.5', '1']}")
-    controls.set("{'pos': [10, '100'], 'neg': [10, '100'], 'DMSO': [20, '100']}")
+    drugs.set(MaterialDefaults.DEFAULT_DRUGS)
+    controls.set(MaterialDefaults.DEFAULT_CONTROLS)
     
     logger.debug("DZN form reset to defaults")
 
@@ -284,9 +285,9 @@ def check_replicates_on_same_plate() -> None:
 
 # Main window setup
 window: tk.Tk = tk.Tk()
-window.title("Generate *.dzn file")
+window.title(WindowConfig.TITLE_DZN_GENERATOR)
 window.resizable(False, False)
-window.geometry('+%d+%d' % (30, 30))
+window.geometry(f'+{WindowConfig.DZN_WINDOW_X}+{WindowConfig.DZN_WINDOW_Y}')
 window.protocol('WM_DELETE_WINDOW', window.withdraw)
 window.withdraw()
 
@@ -344,9 +345,9 @@ check_flag_replicates_on_same_plate: ttk.Checkbutton = ttk.Checkbutton(
 label_rows: tk.Label = tk.Label(frame_dimensions, text='Number of rows')
 label_cols: tk.Label = tk.Label(frame_dimensions, text='Number of columns')
 
-entry_rows: ttk.Entry = ttk.Entry(frame_dimensions, textvariable=num_rows, width=6,
+entry_rows: ttk.Entry = ttk.Entry(frame_dimensions, textvariable=num_rows, width=UI.ENTRY_WIDTH_NUMERIC,
                        validate='all', validatecommand=(vcmd, '%P'))
-entry_cols: ttk.Entry = ttk.Entry(frame_dimensions, textvariable=num_cols, width=6,
+entry_cols: ttk.Entry = ttk.Entry(frame_dimensions, textvariable=num_cols, width=UI.ENTRY_WIDTH_NUMERIC,
                        validate='all', validatecommand=(vcmd, '%P'))
 
 # Layout section
@@ -358,32 +359,32 @@ label_vertical_cell_lines: tk.Label = tk.Label(frame_layout, text='Number of ver
 
 check_inner_empty_edge: ttk.Checkbutton = ttk.Checkbutton(
     frame_layout, variable=inner_empty_edge, onvalue=True, offvalue=False)
-entry_size_empty_edge: ttk.Entry = ttk.Entry(frame_layout, textvariable=size_empty_edge, width=6,
+entry_size_empty_edge: ttk.Entry = ttk.Entry(frame_layout, textvariable=size_empty_edge, width=UI.ENTRY_WIDTH_NUMERIC,
                                   validate='all', validatecommand=(vcmd, '%P'))
-entry_corner_empty_wells: ttk.Entry = ttk.Entry(frame_layout, textvariable=size_corner_empty_wells, width=6,
+entry_corner_empty_wells: ttk.Entry = ttk.Entry(frame_layout, textvariable=size_corner_empty_wells, width=UI.ENTRY_WIDTH_NUMERIC,
                                      validate='all', validatecommand=(vcmd, '%P'))
-entry_horizontal_cell_lines: ttk.Entry = ttk.Entry(frame_layout, textvariable=horizontal_cell_lines, width=6,
+entry_horizontal_cell_lines: ttk.Entry = ttk.Entry(frame_layout, textvariable=horizontal_cell_lines, width=UI.ENTRY_WIDTH_NUMERIC,
                                         validate='all', validatecommand=(vcmd, '%P'))
-entry_vertical_cell_lines: ttk.Entry = ttk.Entry(frame_layout, textvariable=vertical_cell_lines, width=6,
+entry_vertical_cell_lines: ttk.Entry = ttk.Entry(frame_layout, textvariable=vertical_cell_lines, width=UI.ENTRY_WIDTH_NUMERIC,
                                       validate='all', validatecommand=(vcmd, '%P'))
 
 # Materials section
 label_drugs: tk.Label = tk.Label(frame_materials, text='List of compounds \nwith concentrations')
 label_controls: tk.Label = tk.Label(frame_materials, text='List of controls \nwith concentrations:')
-entry_drugs: ttk.Entry = ttk.Entry(frame_materials, textvariable=drugs, width=33)
-entry_controls: ttk.Entry = ttk.Entry(frame_materials, textvariable=controls, width=33)
+entry_drugs: ttk.Entry = ttk.Entry(frame_materials, textvariable=drugs, width=UI.ENTRY_WIDTH_MATERIALS)
+entry_controls: ttk.Entry = ttk.Entry(frame_materials, textvariable=controls, width=UI.ENTRY_WIDTH_MATERIALS)
 help_drugs: tk.Label = tk.Label(frame_materials, text='?', relief='raised')
 help_controls: tk.Label = tk.Label(frame_materials, text='?', relief='raised')
 
 # UI placement
-frame_flags.grid(row=0, column=0, rowspan=2, columnspan=1, sticky="nw", padx=3, pady=3)
+frame_flags.grid(row=0, column=0, rowspan=2, columnspan=1, sticky="nw", padx=UI.GRID_PADDING, pady=UI.GRID_PADDING)
 frame_dimensions.grid(row=0, column=1, rowspan=1, columnspan=1,
-                      sticky="nw", padx=3, pady=3)
-frame_layout.grid(row=1, column=1, rowspan=1, columnspan=1, sticky="nw", padx=3, pady=3)
+                      sticky="nw", padx=UI.GRID_PADDING, pady=UI.GRID_PADDING)
+frame_layout.grid(row=1, column=1, rowspan=1, columnspan=1, sticky="nw", padx=UI.GRID_PADDING, pady=UI.GRID_PADDING)
 frame_materials.grid(row=2, column=0, rowspan=1, columnspan=2,
-                     sticky="w", padx=3, pady=3)
+                     sticky="w", padx=UI.GRID_PADDING, pady=UI.GRID_PADDING)
 button_generate.grid(row=3, column=0, rowspan=1, columnspan=2,
-                     sticky="ew", padx=3, pady=3)
+                     sticky="ew", padx=UI.GRID_PADDING, pady=UI.GRID_PADDING)
 
 # Flags placement
 label_flag_allow_empty_wells.grid(row=0, column=0, columnspan=1, sticky="w")
