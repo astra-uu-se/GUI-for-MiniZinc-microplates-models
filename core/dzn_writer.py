@@ -44,10 +44,6 @@ def build_dzn_text(
     compounds_dict: Dict[str, List],
     controls_dict: Dict[str, List],
 ) -> str:
-def build_dzn_text(
-    self,
-    # parameters...
-) -> str:
     """
     Construct a detailed DZN (Data Specification File) string representing the layout and parameters
     for a MiniZinc optimization model, based on the provided user-defined input parameters and data.
