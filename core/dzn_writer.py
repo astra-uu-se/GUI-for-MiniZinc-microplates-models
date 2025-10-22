@@ -92,7 +92,8 @@ def build_dzn_text(
         The generated DZN file content as a string. It contains all the variable assignments
         and array data structured for MiniZinc, with proper syntax. Quotes within string data are
         replaced with double quotes for safety. This string can be written directly to a .dzn file.
-
+    List(str)
+        The list of all the controls, which is going to be used during the visualization
     Notes
     -----
     - This method mimics the exact string formatting and layout as the original UI code, ensuring
