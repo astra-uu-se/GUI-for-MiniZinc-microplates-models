@@ -33,6 +33,7 @@ from dataclasses import dataclass
 
 import utility as ut
 from core.io_utils import path_show
+from core.minizinc_runner import run_model, extract_csv_text
 from config.loader import load_paths_config
 from models.constants import PlateDefaults, UI, Messages, WindowConfig, System, FileTypes
 
@@ -187,8 +188,8 @@ def run_minizinc() -> None:
     time.sleep(System.UI_UPDATE_DELAY)
     
     try:
-        cmd_to_str = ut.run_cmd(minizinc_path.get(), solver_config,
-                                model_file, dzn_file_path.get())
+        cmd_to_str = run_model(minizinc_path.get(), solver_config,
+                               model_file, dzn_file_path.get())
         label_csv_loaded.config(text='Done...')
 
         path = tk.filedialog.asksaveasfilename(
@@ -206,7 +207,7 @@ def run_minizinc() -> None:
         # Use context manager for file writing
         try:
             with open(path, 'w') as csv_file:
-                csv_text = ut.extract_csv_text(cmd_to_str)
+                csv_text = extract_csv_text(cmd_to_str)
                 csv_file.writelines(csv_text)
             
             print(f"CSV saved successfully: {path}")

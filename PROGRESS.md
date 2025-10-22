@@ -133,7 +133,7 @@ mplace/
      - In mplace.py: `from utility import read_paths_ini_file` → `from config.loader import load_paths_config`
      - In UI files: `from utility import read_csv_file` → `from core.io_utils import read_csv_file`
 
-#### Stage 4: Extract MiniZinc Logic (Week 2, Days 2-3)
+#### Stage 4: Extract MiniZinc Logic (Week 2, Days 2-3, DONE)
 - **Objective**: Separate subprocess handling from UI  
 - **Tasks**:
   1. Create `core/minizinc_runner.py`:

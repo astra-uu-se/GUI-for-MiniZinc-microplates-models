@@ -23,11 +23,8 @@
 
 import os
 import os.path
-import subprocess
-import sys
 import ast
 import re
-import time
 import logging
 from functools import lru_cache
 import numpy as np
@@ -368,81 +365,6 @@ def to_number_if_possible(value: str) -> Union[int, float, str]:
             return float(value)
         except ValueError:
             return value
-
-
-def run_cmd(minizinc_path: str, solver_config: str, model_file: str, data_file: str) -> str:
-    """Execute MiniZinc command and return output.
-    
-    Args:
-        minizinc_path: Path to MiniZinc executable
-        solver_config: Solver configuration file path
-        model_file: Model file path (.mzn)
-        data_file: Data file path (.dzn)
-        
-    Returns:
-        Command output as string
-        
-    Raises:
-        RuntimeError: If MiniZinc command execution fails
-    """
-    if sys.platform.startswith('win'):
-        cmd = [minizinc_path, solver_config, model_file, data_file]
-    else:
-        cmd = [minizinc_path + ' --param-file-no-push ' +
-               solver_config + ' ' + model_file + ' ' + data_file]
-    
-    print('command:', cmd)
-    logger.info(f"Executing MiniZinc: {' '.join(cmd) if isinstance(cmd, list) else cmd}")
-    
-    start_time = time.time()
-    
-    try:
-        process = subprocess.Popen(
-            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, errors = process.communicate()
-        output = output.decode('utf-8').strip()
-        errors = errors.decode('utf-8').strip()
-        process.kill()
-    except (subprocess.SubprocessError, OSError) as e:
-        logger.error(f"MiniZinc execution failed: {e}")
-        raise RuntimeError(f"Failed to execute MiniZinc command: {e}") from e
-
-    elapsed = time.time() - start_time
-    
-    if errors:
-        print(errors)  # User sees warnings/errors
-        logger.warning(f"MiniZinc stderr: {errors}")
-    if output:
-        print(output)  # User sees output
-        logger.debug(f"MiniZinc stdout: {output}")
-
-    print(f'MiniZinc completed in {elapsed:.1f} seconds')
-    logger.info(f"MiniZinc execution completed in {elapsed:.1f} seconds")
-
-    return output
-
-
-def extract_csv_text(text: str) -> List[str]:
-    """Extract CSV content from MiniZinc output.
-    
-    Args:
-        text: MiniZinc output text
-        
-    Returns:
-        List of CSV lines extracted from output
-    """
-    s, e = 0, 0
-    lines = text.split('\n')
-    for i in range(len(lines)):
-        if lines[i] == 'plateID,well,cmpdname,CONCuM,cmpdnum,VOLuL':
-            s = i
-        if lines[i][:17] == 'criteria function' or lines[i][:1] == '%' or lines[i] == '----------' or lines[i] == 'finished':
-            if e <= s:
-                e = i
-    
-    extracted_lines = [line + '\n' for line in lines[s:e]]
-    logger.debug(f"Extracted {len(extracted_lines)} CSV lines from MiniZinc output")
-    return extracted_lines
 
 
 def parse_control_string(control_string: str) -> str:
