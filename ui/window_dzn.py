@@ -31,6 +31,7 @@ import ast
 import re
 
 import utility as ut
+from core.dzn_writer import build_dzn_text
 from models.constants import PlateDefaults, UI, WindowConfig, MaterialDefaults, FileTypes
 
 # Configure logging for DZN generation module
@@ -109,98 +110,23 @@ def generate_dzn_file() -> None:
     print(f"Validated: {len(compounds_dict)} compounds ({total_compound_wells} wells), {len(controls_dict)} controls ({total_control_wells} wells); {num_rows.get()}x{num_cols.get()} plate")
     logger.info(f"Input validation passed: compounds={len(compounds_dict)}({total_compound_wells}), controls={len(controls_dict)}({total_control_wells}), plate={num_rows.get()}x{num_cols.get()}")
 
+
     # Step 1 - Generate DZN content (use validated dicts)
-    compounds = compounds_dict
-    control_compounds = controls_dict
-    
-    dzn_txt = ''
-
-    # Write basic values
-    dzn_txt += 'num_rows = ' + num_rows.get() + ';\n'
-    dzn_txt += 'num_cols = ' + num_cols.get() + ';\n\n'
-
-    if inner_empty_edge.get() == False:  # no printing for PLAID
-        dzn_txt += 'inner_empty_edge_input = ' + str(inner_empty_edge.get()).lower() + ';\n'
-    dzn_txt += 'size_empty_edge = ' + size_empty_edge.get() + ';\n'
-    dzn_txt += 'size_corner_empty_wells = ' + size_corner_empty_wells.get() + ';\n\n'
-
-    dzn_txt += 'horizontal_cell_lines = ' + horizontal_cell_lines.get() + ';\n'
-    dzn_txt += 'vertical_cell_lines = ' + vertical_cell_lines.get() + ';\n\n'
-
-    dzn_txt += 'allow_empty_wells = ' + str(flag_allow_empty_wells.get()).lower() + ';\n'
-    dzn_txt += 'concentrations_on_different_rows = ' + str(flag_concentrations_on_different_rows.get()).lower() + ';\n'
-    dzn_txt += 'concentrations_on_different_columns = ' + str(flag_concentrations_on_different_columns.get()).lower() + ';\n'
-    dzn_txt += 'replicates_on_different_plates = ' + str(flag_replicates_on_different_plates.get()).lower() + ';\n'
-    dzn_txt += 'replicates_on_same_plate = ' + str(flag_replicates_on_same_plate.get()).lower() + ';\n\n'
-
-    # Process compounds data
-    nb_compounds = 0
-    compound_concentrations: List[int] = []
-    compound_names: List[str] = []
-    compound_replicates: List[int] = []
-
-    for drug in compounds:
-        nb_compounds += 1
-        compound_names.append(str(drug))
-        compound_replicates.append(compounds[drug][0])
-        compounds[drug] = [str(x) for x in compounds[drug][1:]]
-        compound_concentrations.append(len(compounds[drug]))
-
-    dzn_txt += 'compounds = ' + str(nb_compounds) + ';\n'
-    dzn_txt += 'compound_concentrations = ' + str(compound_concentrations) + ';\n'
-    dzn_txt += 'compound_names = ' + str(compound_names) + ';\n'
-    dzn_txt += 'compound_replicates = ' + str(compound_replicates) + ';\n'
-    dzn_txt += 'compound_concentration_names = \n['
-    
-    drug1 = True
-    for drug in compounds:
-        if drug1:
-            drug1 = False
-        else:
-            dzn_txt += ' '
-        dzn_txt += '| ' + str(compounds[drug])[1:-1]
-        for i in range(len(compounds[drug]), max(compound_concentrations)):
-            dzn_txt += ", ''"
-        dzn_txt += '\n'
-    dzn_txt += '|];\n'
-    dzn_txt += 'compound_concentration_indicators = [];\n\n'
-
-    dzn_txt += 'combinations = 	0;\ncombination_names = [];\ncombination_concentration_names = [];\ncombination_concentrations = 0;\n\n'
-
-    # Process controls data
-    nb_controls = 0
-    control_concentrations: List[int] = []
-    control_names_str: List[str] = []
-    control_replicates: List[int] = []
-
-    for control in control_compounds:
-        nb_controls += 1
-        control_names_str.append(str(control))
-        control_replicates.append(control_compounds[control][0])
-        control_compounds[control] = [str(x) for x in control_compounds[control][1:]]
-        control_concentrations.append(len(control_compounds[control]))
-
-    dzn_txt += 'num_controls = ' + str(nb_controls) + ';\n'
-    dzn_txt += 'control_concentrations = ' + str(control_concentrations) + ';\n'
-    dzn_txt += 'control_names = ' + str(control_names_str) + ';\n'
-    dzn_txt += 'control_replicates = ' + str(control_replicates) + ';\n'
-    dzn_txt += 'control_concentration_names = \n['
-    
-    control1 = True
-    for control in control_compounds:
-        if control1:
-            control1 = False
-        else:
-            dzn_txt += ' '
-        dzn_txt += '| ' + str(control_compounds[control])[1:-1]
-        for i in range(len(control_compounds[control]), max(control_concentrations)):
-            dzn_txt += ", ''"
-        dzn_txt += '\n'
-    dzn_txt += '|];\n\n'
-
-    dzn_txt = dzn_txt.replace("'", '"')
-    
-    logger.debug(f"DZN content generated: {len(dzn_txt)} characters")
+    dzn_txt, control_names_str = build_dzn_text(num_rows=num_rows.get(),
+                                                num_cols=num_cols.get(),
+                                                inner_empty_edge=inner_empty_edge.get(),
+                                                size_empty_edge=size_empty_edge.get(),
+                                                size_corner_empty_wells=size_corner_empty_wells.get(),
+                                                horizontal_cell_lines=horizontal_cell_lines.get(),
+                                                vertical_cell_lines=vertical_cell_lines.get(),
+                                                flag_allow_empty_wells=flag_allow_empty_wells.get(),
+                                                flag_concentrations_on_different_rows=flag_concentrations_on_different_rows.get(),
+                                                flag_concentrations_on_different_columns=flag_concentrations_on_different_columns.get(),
+                                                flag_replicates_on_different_plates=flag_replicates_on_different_plates.get(),
+                                                flag_replicates_on_same_plate=flag_replicates_on_same_plate.get(),
+                                                compounds_dict=compounds_dict,
+                                                controls_dict=controls_dict
+                                                )
 
     # Step 2 - Save the results
     path = tk.filedialog.asksaveasfilename(

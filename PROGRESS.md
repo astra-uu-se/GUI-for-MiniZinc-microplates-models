@@ -149,7 +149,7 @@ mplace/
      - Replace direct `run_cmd()` call with `MiniZincRunner` usage
      - Keep UI state management in mplace.py, move subprocess logic to core
 
-#### Stage 5: Extract DZN Generation Logic (Week 2, Days 4-5) - **CRITICAL**
+#### Stage 5: Extract DZN Generation Logic (Week 2, Days 4-5, DONE) - **CRITICAL**
 - **Objective**: Remove the biggest logic blob from UI
 - **Tasks**:
   1. Create `core/dzn_writer.py`:
