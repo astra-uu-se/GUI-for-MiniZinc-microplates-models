@@ -35,7 +35,7 @@ from tkinter import ttk, VERTICAL, RIGHT, Y, LEFT, BOTH
 import ast
 from typing import List, Dict, Sequence, Union
 
-from utility import transform_coordinate, transform_concentrations_to_alphas, to_number_if_possible
+from core.visual_utils import transform_coordinate, transform_concentrations_to_alphas, to_number_if_possible
 from core.io_utils import read_csv_file
 from models.constants import Visualization, Performance, PlateDefaults, UI, WindowConfig, Messages
 

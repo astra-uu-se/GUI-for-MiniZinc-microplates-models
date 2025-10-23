@@ -28,6 +28,8 @@ This module centralizes all magic numbers, default values, and string constants
 used throughout the application to improve maintainability and consistency.
 """
 
+from typing import List
+
 
 class PlateDefaults:
     """Default values for microplate configurations."""
@@ -63,6 +65,14 @@ class UI:
     # Model selection
     SELECT_PLAID = False
     SELECT_OTHER = True
+
+
+class Alphabet:
+    # Constants for coordinate transformation
+    LETTERS_CAPITAL: List[str] = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K",
+                                  "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+    LETTERS_LOWERCASE: List[str] = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
+                                    "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
 
 
 class Visualization:

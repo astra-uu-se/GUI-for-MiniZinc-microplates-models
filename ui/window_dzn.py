@@ -30,10 +30,13 @@ import logging
 import ast
 import re
 
-import utility as ut
 from models.dto import DznBuildParams, DznGenerationResult
-from core.dzn_writer import build_dzn_text
 from models.constants import PlateDefaults, UI, WindowConfig, MaterialDefaults, FileTypes
+from core.validators import (parse_materials_dict, validate_materials_schema,
+                             validate_plate_dimensions, format_validation_errors)
+from core.dzn_writer import build_dzn_text
+from ui.ui_tooltip import CreateToolTip
+from ui.ui_validators import numeric_entry_callback
 
 # Configure logging for DZN generation module
 logger = logging.getLogger(__name__)
@@ -68,28 +71,28 @@ def generate_dzn_file() -> None:
         all_errors.append("All fields must be filled in")
     
     # Validate plate dimensions
-    dimension_errors = ut.validate_plate_dimensions(num_rows.get(), num_cols.get())
+    dimension_errors = validate_plate_dimensions(num_rows.get(), num_cols.get())
     all_errors.extend(dimension_errors)
     
     # Parse and validate compounds
-    compounds_dict, parsing_errors = ut.parse_materials_dict(drugs.get())
+    compounds_dict, parsing_errors = parse_materials_dict(drugs.get())
     all_errors.extend(parsing_errors)
     
     if not parsing_errors:  # Only validate schema if parsing succeeded
-        schema_errors = ut.validate_materials_schema(compounds_dict, "compounds")
+        schema_errors = validate_materials_schema(compounds_dict, "compounds")
         all_errors.extend(schema_errors)
     
     # Parse and validate controls
-    controls_dict, control_parsing_errors = ut.parse_materials_dict(controls.get())
+    controls_dict, control_parsing_errors = parse_materials_dict(controls.get())
     all_errors.extend(control_parsing_errors)
     
     if not control_parsing_errors:  # Only validate schema if parsing succeeded
-        control_schema_errors = ut.validate_materials_schema(controls_dict, "controls")
+        control_schema_errors = validate_materials_schema(controls_dict, "controls")
         all_errors.extend(control_schema_errors)
     
     # If any validation errors, show them all and abort
     if all_errors:
-        error_message = ut.format_validation_errors(all_errors)
+        error_message = format_validation_errors(all_errors)
         print("Input validation failed - check your entries")
         logger.error(f"DZN generation validation failed: {len(all_errors)} errors")
         tk.messagebox.showerror("Input Validation Error", error_message)
@@ -213,7 +216,7 @@ window.protocol('WM_DELETE_WINDOW', window.withdraw)
 window.withdraw()
 
 # Local variables
-vcmd: Tuple = (window.register(ut.callback))
+vcmd: Tuple = (window.register(numeric_entry_callback))
 
 flag_allow_empty_wells: tk.BooleanVar = tk.BooleanVar()
 flag_concentrations_on_different_rows: tk.BooleanVar = tk.BooleanVar()
@@ -352,34 +355,34 @@ help_drugs.grid(row=0, column=2, columnspan=1, sticky="w")
 help_controls.grid(row=1, column=2, columnspan=1, sticky="w")
 
 # UI events and tooltips
-ut.CreateToolTip(label_flag_allow_empty_wells,
-                 text='If enabled, the model will check if there are any empty wells within a plate line.\nIf yes, the model will fail.\nIf disabled, then no such check is performed, i.e. a plate line can have empty wells within it.')
-ut.CreateToolTip(label_flag_concentrations_on_different_rows, 
-                 text='If enabled, the model will try to force replicates of each drug to be placed on different rows.\nIf there are too many replicates, no such attempt will be made.\nIf the number of replicates per drug is small enough, it will also try to ensure that this drug placement is enforced across multiple plates.\nNOTE: if the model is unsatisfiable try to disable this option')
-ut.CreateToolTip(label_flag_concentrations_on_different_columns, 
-                 text='If enabled, the model will try to force replicates of each drug to be placed on different columns.\nIf there are too many replicates, no such attempt will be made.\nIf the number of replicates per drug is small enough, it will also try to ensure that this drug placement is enforced across multiple plates.\nNOTE: if the model is unsatisfiable try to disable this option')
-ut.CreateToolTip(label_flag_replicates_on_different_plates,
-                 text='If enabled, replicates of a drug can be placed on different microplates.')
-ut.CreateToolTip(label_flag_replicates_on_same_plate,
-                 text='If enabled, all replicates of a single drug must be placed on the same microplate.')
+CreateToolTip(label_flag_allow_empty_wells,
+              text='If enabled, the model will check if there are any empty wells within a plate line.\nIf yes, the model will fail.\nIf disabled, then no such check is performed, i.e. a plate line can have empty wells within it.')
+CreateToolTip(label_flag_concentrations_on_different_rows, 
+              text='If enabled, the model will try to force replicates of each drug to be placed on different rows.\nIf there are too many replicates, no such attempt will be made.\nIf the number of replicates per drug is small enough, it will also try to ensure that this drug placement is enforced across multiple plates.\nNOTE: if the model is unsatisfiable try to disable this option')
+CreateToolTip(label_flag_concentrations_on_different_columns, 
+              text='If enabled, the model will try to force replicates of each drug to be placed on different columns.\nIf there are too many replicates, no such attempt will be made.\nIf the number of replicates per drug is small enough, it will also try to ensure that this drug placement is enforced across multiple plates.\nNOTE: if the model is unsatisfiable try to disable this option')
+CreateToolTip(label_flag_replicates_on_different_plates,
+              text='If enabled, replicates of a drug can be placed on different microplates.')
+CreateToolTip(label_flag_replicates_on_same_plate,
+              text='If enabled, all replicates of a single drug must be placed on the same microplate.')
 
-ut.CreateToolTip(label_rows, text='Enter the number of rows of the microplate')
-ut.CreateToolTip(label_cols, text='Enter the number of columns of the microplate')
+CreateToolTip(label_rows, text='Enter the number of rows of the microplate')
+CreateToolTip(label_cols, text='Enter the number of columns of the microplate')
 
-ut.CreateToolTip(label_inner_empty_edge, 
-                 text='When set to True, each plate line will have an edge of empty wells.\nWhen False, the whole plate will have an outer edge, but not each individual plate line.\nSee Figure 2 of COMPD article.')
-ut.CreateToolTip(label_size_empty_edge,
-                 text='How thick the empty edge is. The number must be no less than 0')
-ut.CreateToolTip(label_corner_empty_wells, 
-                 text='The size of a corner filled with empty wells only. IGNORED by PLAID.\nIf used together with "replicates on different rows/columns" may result in no solutions. The number must be no less than 0')
-ut.CreateToolTip(label_horizontal_cell_lines,
-                 text='How many horizontal plate lines is required? No less than 1')
-ut.CreateToolTip(label_vertical_cell_lines,
-                 text='How many vertical plate lines is required? No less than 1')
+CreateToolTip(label_inner_empty_edge, 
+              text='When set to True, each plate line will have an edge of empty wells.\nWhen False, the whole plate will have an outer edge, but not each individual plate line.\nSee Figure 2 of COMPD article.')
+CreateToolTip(label_size_empty_edge,
+              text='How thick the empty edge is. The number must be no less than 0')
+CreateToolTip(label_corner_empty_wells, 
+              text='The size of a corner filled with empty wells only. IGNORED by PLAID.\nIf used together with "replicates on different rows/columns" may result in no solutions. The number must be no less than 0')
+CreateToolTip(label_horizontal_cell_lines,
+              text='How many horizontal plate lines is required? No less than 1')
+CreateToolTip(label_vertical_cell_lines,
+              text='How many vertical plate lines is required? No less than 1')
 
-ut.CreateToolTip(
+CreateToolTip(
     help_drugs, text="List all the materials and their concentrations.\nWe use the format of Python dictionaries: {'Drug1': [5,'2', 'N/A'], 'Drug2': [10, '0.1', '0.5, '10']},\nwhich means that we will have:\n - Drug1 in concentrations '2' and 'N/A' (5 replicates each) and\n - Drug2 in concentrations 0.1, 0.5 and 10 (10 replicates each).\nI recommend to write down the list of materials in the spreadsheet `Convert the compounds and controls.xlsx`,\navailable at https://github.com/astra-uu-se/MPLACE, and then copy generated text here")
-ut.CreateToolTip(
+CreateToolTip(
     help_controls, text="List all the controls and their concentrations.\nWe use the same format as the list of materials.\nAs an illustration, here is another example, for controls:\n   {'Control1': [5, '2', 'N/A'], 'pos': [10, '100'], 'DMSO': [3, '100']},\nwhere we have three different controls.\nAs you can see, the dictionary format allows us to use various number of drugs/controls,\nwhere each drug/control can have its own number of replicates and/or the list concentrations")
 
 # Event bindings

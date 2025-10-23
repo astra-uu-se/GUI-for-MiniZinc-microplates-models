@@ -31,12 +31,13 @@ from functools import partial
 from typing import Tuple
 from dataclasses import dataclass
 
-import utility as ut
+from core.dzn_parser import scan_dzn
 from core.io_utils import path_show
 from core.minizinc_runner import run_model, extract_csv_text
 from config.loader import load_paths_config
 from models.constants import PlateDefaults, UI, Messages, WindowConfig, System, FileTypes
 from models.dto import DznGenerationResult, MiniZincRunRequest, MiniZincRunResult
+from ui.ui_validators import numeric_entry_callback
 
 from ui import window_dzn as wd
 from ui import window_visuals as wv
@@ -128,7 +129,7 @@ def load_dzn() -> None:
             path_show(path, label_dzn_loaded)
             dzn_file_path.set(path)
 
-            cols, rows, controls_names_text = ut.scan_dzn(path)
+            cols, rows, controls_names_text = scan_dzn(path)
             num_cols.set(cols)
             num_rows.set(rows)
             control_names.set(controls_names_text)
@@ -281,7 +282,7 @@ num_rows.set(PlateDefaults.ROWS)
 control_names: tk.StringVar = tk.StringVar(root)
 control_names.set(PlateDefaults.CONTROL_NAMES)
 
-vcmd: Tuple = (root.register(ut.callback))
+vcmd: Tuple = (root.register(numeric_entry_callback))
 
 use_compd_flag: tk.BooleanVar = tk.BooleanVar(root)
 use_compd_flag.set(UI.SELECT_PLAID)
