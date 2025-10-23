@@ -31,6 +31,7 @@ import ast
 import re
 
 import utility as ut
+from models.dto import DznBuildParams, DznGenerationResult
 from core.dzn_writer import build_dzn_text
 from models.constants import PlateDefaults, UI, WindowConfig, MaterialDefaults, FileTypes
 
@@ -110,23 +111,26 @@ def generate_dzn_file() -> None:
     print(f"Validated: {len(compounds_dict)} compounds ({total_compound_wells} wells), {len(controls_dict)} controls ({total_control_wells} wells); {num_rows.get()}x{num_cols.get()} plate")
     logger.info(f"Input validation passed: compounds={len(compounds_dict)}({total_compound_wells}), controls={len(controls_dict)}({total_control_wells}), plate={num_rows.get()}x{num_cols.get()}")
 
-
-    # Step 1 - Generate DZN content (use validated dicts)
-    dzn_txt, control_names_str = build_dzn_text(num_rows=num_rows.get(),
-                                                num_cols=num_cols.get(),
-                                                inner_empty_edge=inner_empty_edge.get(),
-                                                size_empty_edge=size_empty_edge.get(),
-                                                size_corner_empty_wells=size_corner_empty_wells.get(),
-                                                horizontal_cell_lines=horizontal_cell_lines.get(),
-                                                vertical_cell_lines=vertical_cell_lines.get(),
-                                                flag_allow_empty_wells=flag_allow_empty_wells.get(),
-                                                flag_concentrations_on_different_rows=flag_concentrations_on_different_rows.get(),
-                                                flag_concentrations_on_different_columns=flag_concentrations_on_different_columns.get(),
-                                                flag_replicates_on_different_plates=flag_replicates_on_different_plates.get(),
-                                                flag_replicates_on_same_plate=flag_replicates_on_same_plate.get(),
-                                                compounds_dict=compounds_dict,
-                                                controls_dict=controls_dict
-                                                )
+    # Step 1 - Generate DZN content using DTO
+    params = DznBuildParams(
+        num_rows=num_rows.get(),
+        num_cols=num_cols.get(),
+        inner_empty_edge=inner_empty_edge.get(),
+        size_empty_edge=size_empty_edge.get(),
+        size_corner_empty_wells=size_corner_empty_wells.get(),
+        horizontal_cell_lines=horizontal_cell_lines.get(),
+        vertical_cell_lines=vertical_cell_lines.get(),
+        flag_allow_empty_wells=flag_allow_empty_wells.get(),
+        flag_concentrations_on_different_rows=flag_concentrations_on_different_rows.get(),
+        flag_concentrations_on_different_columns=flag_concentrations_on_different_columns.get(),
+        flag_replicates_on_different_plates=flag_replicates_on_different_plates.get(),
+        flag_replicates_on_same_plate=flag_replicates_on_same_plate.get(),
+        compounds_dict=compounds_dict,
+        controls_dict=controls_dict,
+    )
+    
+    dzn_txt, control_names_list = build_dzn_text(params)
+    logger.debug(f"DZN content generated via DTO: {len(dzn_txt)} characters")
 
     # Step 2 - Save the results
     path = tk.filedialog.asksaveasfilename(
@@ -151,16 +155,16 @@ def generate_dzn_file() -> None:
         tk.messagebox.showerror("Error", f"Failed to write DZN file: {str(e)}")
         return
 
-    # Notify main window through callback instead of direct manipulation
+    # Notify main window through callback using DTO
     if completion_callback:
         result = DznGenerationResult(
             file_path=path,
-            rows=num_rows.get(),
-            cols=num_cols.get(), 
-            control_names=str(control_names_str)
+            rows=params.num_rows,  # Use DTO field instead of UI state
+            cols=params.num_cols,  # Use DTO field instead of UI state
+            control_names=str(control_names_list)  # Use returned list
         )
         completion_callback(result)
-        logger.debug("DZN completion callback invoked")
+        logger.debug("DZN completion callback invoked with DTO result")
     else:
         logger.warning("No completion callback registered - main window not updated")
 

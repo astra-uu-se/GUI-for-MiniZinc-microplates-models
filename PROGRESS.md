@@ -80,7 +80,7 @@ mplace/
 ├── config/                   # Configuration management
 │   ├── __init__.py           # Empty file
 │   ├── paths.ini             # Moved from root
-│   └── loader.py             # NEW - Configuration loading (the need is to be explored)
+│   └── loader.py             # NEW - Configuration loading
 ├── mzn/                      # MiniZinc model files
 │   ├── plate-design.mzn      # Moved from root
 │   ├── layout_predicates.mzn # Moved from root  
@@ -175,7 +175,7 @@ mplace/
      ```
   3. Keep validation logic in UI initially (can be moved later)
 
-#### Stage 6: Create Data Classes (Week 3, Day 1)
+#### Stage 6: Create Data Classes (Week 3, Day 1, DONE)
 - **Objective**: Formalize data transfer between layers
 - **Tasks**:
   1. Create `models/dto.py`:

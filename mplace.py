@@ -36,6 +36,7 @@ from core.io_utils import path_show
 from core.minizinc_runner import run_model, extract_csv_text
 from config.loader import load_paths_config
 from models.constants import PlateDefaults, UI, Messages, WindowConfig, System, FileTypes
+from models.dto import DznGenerationResult, MiniZincRunRequest, MiniZincRunResult
 
 from ui import window_dzn as wd
 from ui import window_visuals as wv
@@ -50,15 +51,6 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class DznGenerationResult:
-    """Data structure for DZN generation results."""
-    file_path: str
-    rows: str
-    cols: str
-    control_names: str
 
 
 # ------------------------------
