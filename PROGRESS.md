@@ -33,11 +33,27 @@ This document tracks the progress of key tasks in the MPLACE project.
 | Low      | Add Batch Processing Support    | Not done       | No support for processing multiple files in sequence; add batch processing capabilities for research workflows. |
 | Low      | Expand Export Format Options    | Not done       | Only PNG export currently supported; add PDF, SVG support for publication-quality figures. |
 | Low      | Add Data Consistency Validation | Not done       | No validation that CSV data matches expected DZN parameters; add cross-validation between input and output data. |
-| Low      | Create Data Transfer Objects    | Not done       | Complex parameter passing could use structured objects instead of individual parameters for better maintainability. |
+| Low      | Create Data Transfer Objects    | Done           | Complex parameter passing could use structured objects instead of individual parameters for better maintainability. |
 | Low      | Add Plater CSV Export Support   | Not done       | Add export of layouts to plater's plate-shaped CSV format for R ecosystem integration. Create plate-grid pivot by mapping well coordinates (A01 → row A, col 1) and writing plate-shaped layers (Treatment, Concentration). Implement conversion utilities in core/io_utils.py and expose via UI export options. Easy conversion from current MPLACE CSV format. |
 | Low      | Add Wellmap TOML Export Support | Not done       | Add export of layouts to Wellmap TOML format for microplate metadata exchange. Group wells by compound/concentration patterns to generate [row], [col], and [block] sections with experimental metadata. Implement in core/io_utils.py and expose via UI export options. More complex than Plater format but enables richer experimental design workflows. |
 
 ---
+
+
+### Organization Rules
+
+**What Goes Where:**
+- **ui/**: Only Tkinter widgets, layouts, and event binding. No file I/O, no complex algorithms
+- **core/**: All the "heavy lifting" - file processing, subprocess calls, text generation  
+- **models/**: Constants, simple data classes. No behavior/methods
+- **config/**: Configuration loading and validation
+
+**Safety Guidelines:**
+- Test after each stage - don't move to next stage if current breaks
+- Git commit after each working stage  
+- One file at a time - don't move multiple files simultaneously
+- Fix imports immediately - don't leave broken imports
+
 
 ## How to Update This File
 
