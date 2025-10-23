@@ -39,15 +39,6 @@ from models.constants import PlateDefaults, UI, WindowConfig, MaterialDefaults, 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class DznGenerationResult:
-    """Data structure for DZN generation results."""
-    file_path: str
-    rows: str
-    cols: str
-    control_names: str
-
-
 # Callback function for communicating with main window
 completion_callback: Optional[Callable[[DznGenerationResult], None]] = None
 
