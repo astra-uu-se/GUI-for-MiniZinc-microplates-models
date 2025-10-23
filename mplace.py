@@ -34,9 +34,9 @@ from dataclasses import dataclass
 from core.dzn_parser import scan_dzn
 from core.io_utils import path_show
 from core.minizinc_runner import run_model, extract_csv_text
-from config.loader import load_paths_config
+from config.loader import load_config
 from models.constants import PlateDefaults, UI, Messages, WindowConfig, System, FileTypes
-from models.dto import DznGenerationResult, MiniZincRunRequest, MiniZincRunResult
+from models.dto import AppConfig, DznGenerationResult, MiniZincRunRequest, MiniZincRunResult
 from ui.ui_validators import numeric_entry_callback
 
 from ui import window_dzn as wd
@@ -288,7 +288,7 @@ use_compd_flag: tk.BooleanVar = tk.BooleanVar(root)
 use_compd_flag.set(UI.SELECT_PLAID)
 
 try:
-    minizinc_path_s, plaid_path_s, compd_path_s, plaid_mpc_path_s, compd_mpc_path_s = load_paths_config()
+    app_config: AppConfig = load_config()
     print("Configuration loaded successfully")
     logger.info("Configuration loaded from paths.ini")
 except FileNotFoundError as e:
@@ -302,11 +302,11 @@ compd_path: tk.StringVar = tk.StringVar(root)
 plaid_mpc_path: tk.StringVar = tk.StringVar(root)
 compd_mpc_path: tk.StringVar = tk.StringVar(root)
 
-minizinc_path.set(minizinc_path_s)
-plaid_path.set(plaid_path_s)
-compd_path.set(compd_path_s)
-plaid_mpc_path.set(plaid_mpc_path_s)
-compd_mpc_path.set(compd_mpc_path_s)
+minizinc_path.set(app_config.minizinc_path)
+plaid_path.set(app_config.plaid_path)
+compd_path.set(app_config.compd_path)
+plaid_mpc_path.set(app_config.plaid_mpc_path)
+compd_mpc_path.set(app_config.compd_mpc_path)
 
 
 # ------------------------------

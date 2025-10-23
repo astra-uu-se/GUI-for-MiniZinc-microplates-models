@@ -103,18 +103,11 @@ class Performance:
 class PathsIni:
     """Configuration file parsing constants."""
     # Configuration keys and prefixes
-    MINIZINC_PREFIX = 'minizinc_path = '
-    PLAID_PREFIX = 'plaid_path = '
-    COMPD_PREFIX = 'compd_path = '
-    PLAID_MPC_PREFIX = 'plaid_mpc_path = '
-    COMPD_MPC_PREFIX = 'compd_mpc_path = '
-    
-    # Calculated offsets
-    MINIZINC_OFFSET = len(MINIZINC_PREFIX)
-    PLAID_OFFSET = len(PLAID_PREFIX)
-    COMPD_OFFSET = len(COMPD_PREFIX)
-    PLAID_MPC_OFFSET = len(PLAID_MPC_PREFIX)
-    COMPD_MPC_OFFSET = len(COMPD_MPC_PREFIX)
+    MINIZINC_PREFIX = 'minizinc_path'
+    PLAID_PREFIX = 'plaid_path'
+    COMPD_PREFIX = 'compd_path'
+    PLAID_MPC_PREFIX = 'plaid_mpc_path'
+    COMPD_MPC_PREFIX = 'compd_mpc_path'
 
 
 class Messages:
@@ -191,4 +184,4 @@ class System:
     WINDOWS_CODEPAGE_UTF8 = 'chcp 65001'
     
     # Time delays
-    UI_UPDATE_DELAY = 0.25  # seconds
+    UI_UPDATE_DELAY = 0  # seconds

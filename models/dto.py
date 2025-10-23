@@ -34,6 +34,17 @@ from typing import Dict, List
 
 
 @dataclass(frozen=True)
+class AppConfig:
+    """Contains all all configuration fields (paths) the app relies on
+    """
+    minizinc_path: str
+    plaid_path: str
+    compd_path: str
+    plaid_mpc_path: str
+    compd_mpc_path: str
+
+
+@dataclass(frozen=True)
 class DznGenerationResult:
     """Result of DZN file generation operation.
     
