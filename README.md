@@ -114,7 +114,7 @@ compd_mpc_path = "mzn/compd_default.mpc"
 - Save the resulting CSV file(s) when prompted.
 
 **3) Load an existing layout (*.csv) (optional)**
-- If you already have a layout file, click "Load *.csv file".
+- If you already have a layout file, click "Load *.csv file" (MPLACE recognizes both PharmBio and PLATER formats).
 
 **4) Visualize the layout**
 - Click "Visualize *.csv".
@@ -130,7 +130,7 @@ compd_mpc_path = "mzn/compd_default.mpc"
 
 ## Plater format (export)
 
-MPLACE can export layouts to **PLATER-compatible CSV** files. The PLATER format is a plate-shaped CSV used by the R package `plater` to read, tidy, and visualize microtiter plates. Key points:
+MPLACE can export and import layouts to **PLATER-compatible CSV** files. The PLATER format is a plate-shaped CSV used by the R package `plater` to read, tidy, and visualize microtiter plates. Key points:
 
 - **One file per plate**: PLATER expects each CSV to represent a single plate. If your run produces multiple plates, MPLACE will prompt you to save multiple CSVs (one per plate).
 - **Multiple layouts (variables)** can be stored in one file by separating them with a blank row (e.g., Drug, Concentration, Treatment). The `plater::read_plate()` function converts these into tidy data.
