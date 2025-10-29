@@ -170,13 +170,15 @@ def run_minizinc() -> None:
     if use_compd_flag.get() == True:
         solver_config = compd_mpc_path.get()
         model_file = compd_path.get()
-        print(f"Running {Messages.MODEL_OTHER} model...")
-        logger.info(f"Starting MiniZinc execution with {Messages.MODEL_OTHER} model")
+        model_name = Messages.MODEL_OTHER
+        print(f"Running {model_name} model...")
+        logger.info(f"Starting MiniZinc execution with {model_name} model")
     else:
         solver_config = plaid_mpc_path.get()
         model_file = plaid_path.get()
-        print(f"Running {Messages.MODEL_PLAID} model...")
-        logger.info(f"Starting MiniZinc execution with {Messages.MODEL_PLAID} model")
+        model_name = Messages.MODEL_PLAID
+        print(f"Running {model_name} model...")
+        logger.info(f"Starting MiniZinc execution with {model_name} model")
 
     # Store original label text to restore on failure
     original_label_text = label_csv_loaded.cget("text")
@@ -186,58 +188,171 @@ def run_minizinc() -> None:
     try:
         cmd_to_str = run_model(minizinc_path.get(), solver_config,
                                model_file, dzn_file_path.get())
+        
+        # Extract CSV with improved error handling
         try:
             csv_text = extract_csv_text(cmd_to_str)
+            logger.info(f"Successfully extracted {len(csv_text)} CSV lines from solver output")
         except Exception as e:
-            logger.info(f"Problem when extracting layout from the solution: {str(e)}")
-            tk.messagebox.showinfo("Information", str(e))
+            logger.error(f"Failed to extract CSV from solver output: {str(e)}")
+            label_csv_loaded.config(text='Error extracting layout')
+            tk.messagebox.showerror(
+                "Layout Extraction Error", 
+                "No valid layout data found in solver output.\n\n"
+                f"Details: {str(e)}\n\n"
+                "Please check that:\n"
+                "• The model solved successfully\n" 
+                "• The solver produced CSV output with expected headers\n"
+                "• The DZN file contains valid experimental data"
+            )
             return
-        label_csv_loaded.config(text='Done...')
+            
+        label_csv_loaded.config(text='Layout generated. Choose export format...')
 
+        # Ask user for export format with improved error handling
         file_format = ask_layout_export_format(root)
-
-        if file_format == None:
-            logger.info(
-                f"User closed the file format selection window without selecting a format - operation aborted")
+        
+        if file_format is None:
+            logger.info("User cancelled export format selection - operation aborted")
+            label_csv_loaded.config(text=original_label_text)
             return
 
-        logger.info(f"User selected the following layout file format: {file_format}")
+        # Normalize format string to avoid case/value mismatches
+        format_normalized = (file_format or '').lower().strip()
+        logger.info(f"User selected export format: '{format_normalized}'")
 
-        if file_format == FileTypes.PHARMBIO:
-            path = write_csv_file(csv_text)
+        saved_paths = []  # Track all saved files
+        
+        if format_normalized == FileTypes.PHARMBIO.lower().strip():
+            # Save PharmBio format (current format)
+            default_name = os.path.basename(dzn_file_path.get())[:-4] + ".csv"
+            
+            path = write_csv_file(csv_text, suggested_filename=default_name)
             if path == -1:
-                # User cancelled - restore original state
+                logger.info("User cancelled PharmBio CSV save")
                 label_csv_loaded.config(text=original_label_text)
                 return
             elif path == -2:
+                logger.error("Failed to write PharmBio CSV file")
                 label_csv_loaded.config(text='Error writing file')
+                tk.messagebox.showerror("File Write Error", "Failed to save CSV file. Check disk space and permissions.")
                 return
+            
+            saved_paths.append(path)
+            print(f"PharmBio CSV saved: {path}")
+            logger.info(f"PharmBio format CSV saved successfully: {path}")
 
-        elif file_format == FileTypes.PLATER:
-            conversion_input = CSVConversionRequest(csv_lines=csv_text,
-                                                    rows=num_rows.get(),
-                                                    cols=num_cols.get()
-                                                    )
-            paths = []
-            for csv_text in convert_pharmbio_to_plater(conversion_input):
-                path = write_csv_file(csv_text.split())
-                if path == -1:
-                    # User cancelled - restore original state
-                    label_csv_loaded.config(text=original_label_text)
-                    return
-                elif path == -2:
-                    label_csv_loaded.config(text='Error writing file')
-                    return
-                paths.append(path)
-            path = paths[0]
+        elif format_normalized == FileTypes.PLATER.lower().strip():
+            # Convert to PLATER format and save (potentially multiple files)
+            try:
+                conversion_input = CSVConversionRequest(
+                    csv_lines=csv_text,
+                    rows=num_rows.get(),
+                    cols=num_cols.get()
+                )
+                
+                plater_data_list = convert_pharmbio_to_plater(conversion_input)
+                logger.info(f"Converted to PLATER format: {len(plater_data_list)} file(s) to save")
+                
+                # Save each PLATER CSV file
+                for i, plater_csv_content in enumerate(plater_data_list):
+                    # Ensure proper CSV line formatting
+                    if isinstance(plater_csv_content, str):
+                        # If it's a string, split by lines and ensure newlines
+                        csv_lines = [line + '\n' if not line.endswith('\n') else line 
+                                   for line in plater_csv_content.splitlines()]
+                    else:
+                        # If it's already a list, use as-is
+                        csv_lines = plater_csv_content
+                    
+                    # Show save dialog with meaningful default filename
+                    if len(plater_data_list) == 1:
+                        default_name = os.path.basename(dzn_file_path.get())[:-4] + ".csv"
+                    else:
+                        default_name = os.path.basename(dzn_file_path.get())[:-4] + "_" + str(i+1) + ".csv"
+                    
+                    path = write_csv_file(csv_lines, suggested_filename=default_name)
+                    
+                    if path == -1:
+                        if i == 0:
+                            logger.info("User cancelled PLATER CSV save")
+                            label_csv_loaded.config(text=original_label_text)
+                            return
+                        else:
+                            logger.info(f"User cancelled PLATER save on plate {i+1}/{len(plater_data_list)}")
+                            break  # Stop saving remaining files
+                    elif path == -2:
+                        logger.error(f"Failed to write PLATER CSV file {i+1}")
+                        label_csv_loaded.config(text='Error writing file')
+                        tk.messagebox.showerror(
+                            "File Write Error", 
+                            f"Failed to save PLATER file {i+1} of {len(plater_data_list)}.\n"
+                            "Check disk space and permissions."
+                        )
+                        return
+                    
+                    saved_paths.append(path)
+                    print(f"PLATER CSV {i+1}/{len(plater_data_list)} saved: {path}")
+                    logger.info(f"PLATER format CSV {i+1}/{len(plater_data_list)} saved: {path}")
+                
+                # Provide user feedback for multi-file saves
+                if len(saved_paths) > 1:
+                    file_list = '\n'.join(f"• {os.path.basename(p)}" for p in saved_paths)
+                    tk.messagebox.showinfo(
+                        "PLATER Export Complete",
+                        f"Successfully saved {len(saved_paths)} PLATER files:\n\n{file_list}\n\n"
+                        "Note: PLATER format uses one file per plate."
+                    )
+                    logger.info(f"Multi-file PLATER export completed: {len(saved_paths)} files saved")
+                
+            except Exception as e:
+                logger.error(f"PLATER conversion failed: {str(e)}")
+                label_csv_loaded.config(text='Error converting to PLATER format')
+                tk.messagebox.showerror(
+                    "Format Conversion Error",
+                    f"Failed to convert layout to PLATER format.\n\n"
+                    f"Details: {str(e)}\n\n"
+                    "Please report this issue if it persists."
+                )
+                return
+        
+        else:
+            # Unknown format - shouldn't happen with proper dialog, but defensive programming
+            logger.warning(f"Unknown export format selected: '{file_format}' (normalized: '{format_normalized}')")
+            tk.messagebox.showerror(
+                "Unknown Format",
+                f"Unknown export format: '{file_format}'\n\n"
+                "Please select either PharmBio or PLATER format."
+            )
+            label_csv_loaded.config(text=original_label_text)
+            return
 
-        update_csv_path(path)
-        csv_file_path.set(path)
+        # Update UI with primary saved file (first one for multi-file saves)
+        if saved_paths:
+            primary_path = saved_paths[0]
+            update_csv_path(primary_path)
+            csv_file_path.set(primary_path)
+            
+            # Show completion message
+            if len(saved_paths) == 1:
+                print(f"Layout exported successfully: {os.path.basename(primary_path)}")
+            else:
+                print(f"Layout exported: {len(saved_paths)} files, primary: {os.path.basename(primary_path)}")
+                
+            logger.info(f"Export completed: {len(saved_paths)} file(s), primary path set to: {primary_path}")
 
     except (RuntimeError, FileNotFoundError) as e:
-        label_csv_loaded.config(text='Error occurred')
+        label_csv_loaded.config(text='MiniZinc execution failed')
         logger.error(f"MiniZinc execution failed: {e}")
-        tk.messagebox.showerror("Error", f"Failed to run MiniZinc: {str(e)}")
+        tk.messagebox.showerror(
+            "Model Execution Error", 
+            f"Failed to run {model_name} model.\n\n"
+            f"Details: {str(e)}\n\n"
+            "Please check:\n"
+            "• MiniZinc is properly installed and configured\n"
+            "• The DZN file is valid\n"
+            "• The model files are accessible"
+        )
 
 
 def visualize() -> None:

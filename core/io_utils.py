@@ -36,35 +36,28 @@ from models.dto import CSVConversionRequest
 logger = logging.getLogger(__name__)
 
 
-def write_csv_file(csv_text: List[str]) -> Union[int,str]:
+def write_csv_file(csv_lines, suggested_filename=None):
+    """Write CSV file with optional filename suggestion."""
     path = tk.filedialog.asksaveasfilename(
-        defaultextension=".csv", filetypes=FileTypes.CSV_FILES)
-
-    print(f"Saving results to: {path}")
-    logger.info(f"User selected CSV save path: {path}")
-
-    if path is None or path == '':
-        # User cancelled - restore original state
-        logger.info("User cancelled CSV save - operation aborted")
-        return -1
-
-    # Use context manager for file writing
-    try:
-        with open(path, 'w') as csv_file:
-            # Clean csv_text and ensure that there are always new line breaks
-            csv_text = [x.strip() + '\n' for x in csv_text]
-            
-            # Write the cleaned text into the file
-            csv_file.writelines(csv_text)
-        
-        print(f"CSV saved successfully: {path}")
-        logger.info(f"CSV file saved: {path}, {len(csv_text)} lines")
-    except (IOError, OSError) as e:
-        logger.error(f"CSV write failed: {path}, error: {e}")
-        tk.messagebox.showerror("Error", f"Failed to write CSV file: {str(e)}")
-        return -2
+        defaultextension=".csv", 
+        filetypes=FileTypes.CSV_FILES,
+        initialfile=suggested_filename
+    )
     
-    return path
+    if path is None or path == '':
+        return -1  # User cancelled
+    
+    try:
+        with open(path, 'w', encoding='utf-8') as csv_file:
+            if isinstance(csv_lines, list):
+                csv_file.writelines(csv_lines)
+            else:
+                csv_file.write(csv_lines)
+        return path
+    except (IOError, OSError) as e:
+        logger.error(f"Failed to write CSV file: {e}")
+        return -2  # Write error
+
 
 def read_csv_file(file_path: str) -> List[str]:
     """Read CSV file and return all lines except header.
