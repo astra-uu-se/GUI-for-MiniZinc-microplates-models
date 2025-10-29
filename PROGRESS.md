@@ -29,7 +29,7 @@ This document tracks the progress of key tasks in the MPLACE project.
 | Low      | Add Unit Test Coverage          | Not done       | No apparent test coverage for utility functions and data processing; create test suite for core functionality. |
 | Low      | Add Integration Tests           | Not done       | No end-to-end testing of DZN → MiniZinc → CSV → Visualization workflow; add comprehensive integration test suite. |
 | Low      | Add Keyboard Shortcuts          | Not done       | No keyboard shortcuts for common operations; add standard shortcuts (Ctrl+O for open, etc.) for improved productivity. |
-| Low      | Create Recent Files Menu        | Not done       | No quick access to recently used DZN/CSV files; add recent files functionality for better workflow efficiency. |
+| Low      | Create Recent Files Menu        | Done           | No quick access to recently used DZN/CSV files; add recent files functionality for better workflow efficiency. |
 | Low      | Add Batch Processing Support    | Not done       | No support for processing multiple files in sequence; add batch processing capabilities for research workflows. |
 | Low      | Expand Export Format Options    | Not done       | Only PNG export currently supported; add PDF, SVG support for publication-quality figures. |
 | Low      | Add Data Consistency Validation | Not done       | No validation that CSV data matches expected DZN parameters; add cross-validation between input and output data. |
