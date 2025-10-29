@@ -108,7 +108,10 @@ compd_mpc_path = "mzn/compd_default.mpc"
 **2) Run the model to produce a layout (*.csv)**
 - Click "Run a model".
 - Choose PLAID (default) or Other.
-- Save the resulting CSV when prompted.
+- After the model finishes, you'll be asked which **CSV format** to save:
+  - **CSV (PharmBio)** — the default MPLACE format used for visualization and post-processing
+  - **CSV (PLATER)** — a plate-shaped format compatible with the R `plater` package (one file per plate). See "Plater format" below.
+- Save the resulting CSV file(s) when prompted.
 
 **3) Load an existing layout (*.csv) (optional)**
 - If you already have a layout file, click "Load *.csv file".
@@ -124,6 +127,23 @@ compd_mpc_path = "mzn/compd_default.mpc"
 - CSV: layout with wells and materials
 - PNG: plate visualization (auto-saved)
 - Optional: You can enhance the visualization by loading a *.dzn file so controls are shown as circles.
+
+## Plater format (export)
+
+MPLACE can export layouts to **PLATER-compatible CSV** files. The PLATER format is a plate-shaped CSV used by the R package `plater` to read, tidy, and visualize microtiter plates. Key points:
+
+- **One file per plate**: PLATER expects each CSV to represent a single plate. If your run produces multiple plates, MPLACE will prompt you to save multiple CSVs (one per plate).
+- **Multiple layouts (variables)** can be stored in one file by separating them with a blank row (e.g., Drug, Concentration, Treatment). The `plater::read_plate()` function converts these into tidy data.
+- To read exported PLATER files in R:
+
+```
+library(plater)
+df <- read_plate("layout_plater.csv") # single plate
+dfs <- read_plates(c("plate1.csv","plate2.csv"), plate_names=c("P1","P2")) # multiple plates
+```
+
+If you're unsure which format to use, choose **PharmBio** to stay within the MPLACE workflow. Use **PLATER** when your downstream analysis or data sharing requires the PLATER ecosystem.
+
 
 ## Input Tips: Compounds/Controls Format
 
@@ -165,6 +185,11 @@ When generating a *.dzn, compounds and controls are entered as Python-like dicti
 **PNGs save to weird locations**
 - For simplicity, images are saved next to the CSV file with a generated name.
 
+**Exported PLATER files**
+- If multiple plates were generated, you will be prompted to save multiple files (one per plate). The completion dialog lists all saved file names.
+- If your analysis requires PLATER, prefer exporting in PLATER format; otherwise, use PharmBio.
+
+
 ## Advanced (optional)
 
 **Switching solvers/threads**
@@ -179,7 +204,7 @@ When generating a *.dzn, compounds and controls are entered as Python-like dicti
 ## Roadmap Highlights
 
 - More distinct colors for materials (≥50)
-- Optional exports to standard formats (e.g., Plater CSV, Wellmap TOML)
+- Optional exports to standard formats (e.g., Wellmap TOML)
 - Progress indicators for long runs
 
 ## Credits
