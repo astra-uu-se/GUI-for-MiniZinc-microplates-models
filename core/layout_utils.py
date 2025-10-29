@@ -23,7 +23,7 @@
 import logging
 
 from functools import lru_cache
-from typing import List, Sequence, Union, Dict
+from typing import List, Sequence, Union, Dict, Tuple
 
 from models.constants import Alphabet, Performance, Visualization
 
@@ -60,6 +60,19 @@ def transform_coordinate(well: str) -> List[int]:
             col = int(well[i:]) - 1
             logger.debug(f"Coordinate transform: {well} -> [{row}, {col}]")
             return [row, col]
+
+
+@lru_cache(maxsize=Performance.COORDINATE_CACHE_SIZE)
+def transform_index(index: int) -> str:
+    """Convert a numerical index to a corresponding letter.
+    
+    Example:
+        transform_index(0) returns 'A'
+        transform_index(27) returns 'Ab'
+    """
+    if index < len(Alphabet.LETTERS_CAPITAL):
+        return Alphabet.LETTERS_CAPITAL[index]
+    return Alphabet.LETTERS_CAPITAL[index//len(Alphabet.LETTERS_CAPITAL)-1] + Alphabet.LETTERS_LOWERCASE[index%len(Alphabet.LETTERS_CAPITAL)]
 
 
 def transform_concentrations_to_alphas(concentration_list: Sequence[Union[str, float, int]]) -> Dict[Union[str, float, int], float]:
@@ -106,3 +119,30 @@ def to_number_if_possible(value: str) -> Union[int, float, str]:
             return value
 
 
+def find_all_plates_concentrations(text_array: List[str]) -> Tuple[Dict[str,List[str]],Dict[str, Union[int, float, str]]]:
+    """Scans the content of CSV file and returns the list of plate names and concentrations for each material
+    
+    Args:
+        value: List of string values
+        
+    Returns:
+        Two dictionaries as a tuple
+    """
+    layouts_dict: Dict[str, List[List[str]]] = {}
+    concentrations_list: Dict[str, List[Union[str, float, int]]] = {}
+    
+    for line in text_array:
+        if line == '\n':  # happens on Windows machines
+            continue
+        array = line.strip().split(',')
+        if array[0] in layouts_dict:
+            layouts_dict[array[0]].append(array[1:])
+        else:
+            layouts_dict[array[0]] = [array[1:]]
+
+        if array[2] in concentrations_list:
+            if to_number_if_possible(array[3]) not in concentrations_list[array[2]]:
+                concentrations_list[array[2]].append(to_number_if_possible(array[3]))
+        else:
+            concentrations_list[array[2]] = [to_number_if_possible(array[3])]
+    return layouts_dict, concentrations_list

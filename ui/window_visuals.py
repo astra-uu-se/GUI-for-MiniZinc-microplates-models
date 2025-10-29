@@ -35,7 +35,7 @@ from tkinter import ttk, VERTICAL, RIGHT, Y, LEFT, BOTH
 import ast
 from typing import List, Dict, Sequence, Union
 
-from core.visual_utils import transform_coordinate, transform_concentrations_to_alphas, to_number_if_possible
+from core.layout_utils import transform_coordinate, transform_concentrations_to_alphas, to_number_if_possible, find_all_plates_concentrations
 from core.io_utils import read_csv_file
 from models.constants import Visualization, Performance, PlateDefaults, UI, WindowConfig, Messages
 
@@ -58,23 +58,7 @@ def draw_plates(parent: tk.Widget, figure_name_template: str, text_array: Sequen
         num_cols: Number of columns in microplate  
         control_names: List of control material names
     """
-    layouts_dict: Dict[str, List[List[str]]] = {}
-    concentrations_list: Dict[str, List[Union[str, float, int]]] = {}
-    
-    for line in text_array:
-        if line == '\n':  # happens on Windows machines
-            continue
-        array = line.strip().split(',')
-        if array[0] in layouts_dict:
-            layouts_dict[array[0]].append(array[1:])
-        else:
-            layouts_dict[array[0]] = [array[1:]]
-
-        if array[2] in concentrations_list:
-            if to_number_if_possible(array[3]) not in concentrations_list[array[2]]:
-                concentrations_list[array[2]].append(to_number_if_possible(array[3]))
-        else:
-            concentrations_list[array[2]] = [to_number_if_possible(array[3])]
+    layouts_dict, concentrations_list = find_all_plates_concentrations(text_array)
             
     # Sort concentrations for each material
     for material in concentrations_list:

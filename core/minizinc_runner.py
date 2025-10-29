@@ -90,26 +90,3 @@ def run_model(minizinc_path: str, solver_config: str, model_file: str, data_file
     logger.info(f"MiniZinc execution completed in {elapsed:.1f} seconds")
 
     return output
-
-
-def extract_csv_text(text: str) -> List[str]:
-    """Extract CSV content from MiniZinc output.
-    
-    Args:
-        text: MiniZinc output text
-        
-    Returns:
-        List of CSV lines extracted from output
-    """
-    s, e = 0, 0
-    lines = text.split('\n')
-    for i in range(len(lines)):
-        if lines[i] == 'plateID,well,cmpdname,CONCuM,cmpdnum,VOLuL':
-            s = i
-        if lines[i][:17] == 'criteria function' or lines[i][:1] == '%' or lines[i] == '----------' or lines[i] == 'finished':
-            if e <= s:
-                e = i
-    
-    extracted_lines = [line + '\n' for line in lines[s:e]]
-    logger.debug(f"Extracted {len(extracted_lines)} CSV lines from MiniZinc output")
-    return extracted_lines

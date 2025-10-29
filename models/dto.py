@@ -126,3 +126,13 @@ class CsvVisualizationRequest:
     rows: str
     cols: str
     control_names: str
+
+@dataclass(frozen=True)
+class CSVConversionRequest:
+    """Request to convert CSV from PharmBio format to Plater format
+    
+    Bundles the parameters needed for the conversion into a single object.
+    """
+    rows: str
+    cols: str
+    csv_lines: List[str]

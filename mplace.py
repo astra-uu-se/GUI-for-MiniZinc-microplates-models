@@ -32,11 +32,12 @@ from typing import Tuple
 from dataclasses import dataclass
 
 from core.dzn_parser import scan_dzn
-from core.io_utils import path_show
-from core.minizinc_runner import run_model, extract_csv_text
+from core.io_utils import path_show, extract_csv_text, convert_pharmbio_to_plater, write_csv_file
+from core.minizinc_runner import run_model
 from config.loader import load_config
 from models.constants import PlateDefaults, UI, Messages, WindowConfig, System, FileTypes
-from models.dto import AppConfig, DznGenerationResult, MiniZincRunRequest, MiniZincRunResult
+from models.dto import AppConfig, DznGenerationResult, MiniZincRunRequest, MiniZincRunResult, CSVConversionRequest
+from ui.layout_format_dialog import ask_layout_export_format
 from ui.ui_validators import numeric_entry_callback
 
 from ui import window_dzn as wd
@@ -60,7 +61,7 @@ logger = logging.getLogger(__name__)
 
 def update_csv_path(path: str) -> None:
     """Update CSV file path and display it in the UI.
-    
+
     Args:
         path: Path to CSV file
     """
@@ -85,7 +86,7 @@ def reset_all() -> None:
 
 def on_dzn_generated(result: DznGenerationResult) -> None:
     """Handle DZN generation completion from WindowGenDZN.
-    
+
     Args:
         result: DZN generation result data
     """
@@ -94,13 +95,15 @@ def on_dzn_generated(result: DznGenerationResult) -> None:
     num_rows.set(result.rows)
     num_cols.set(result.cols)
     control_names.set(result.control_names)
-    
+
     # Update UI elements
     path_show(result.file_path, label_dzn_loaded)
     button_run_minizinc.config(state=tk.NORMAL)
-    
-    print(f"DZN integrated: {result.rows}x{result.cols} plate, controls: {result.control_names}")
-    logger.info(f"DZN generation result integrated into main window: {result.file_path}")
+
+    print(
+        f"DZN integrated: {result.rows}x{result.cols} plate, controls: {result.control_names}")
+    logger.info(
+        f"DZN generation result integrated into main window: {result.file_path}")
 
 
 def generate_dzn() -> None:
@@ -111,7 +114,7 @@ def generate_dzn() -> None:
 
 def connect_generate_dzn() -> None:
     """Set up callback for DZN generation completion.
-    
+
     Establishes clean communication between main and DZN windows.
     """
     wd.set_completion_callback(on_dzn_generated)
@@ -174,46 +177,63 @@ def run_minizinc() -> None:
         model_file = plaid_path.get()
         print(f"Running {Messages.MODEL_PLAID} model...")
         logger.info(f"Starting MiniZinc execution with {Messages.MODEL_PLAID} model")
-    
+
     # Store original label text to restore on failure
     original_label_text = label_csv_loaded.cget("text")
     label_csv_loaded.config(text='Running the model...')
     time.sleep(System.UI_UPDATE_DELAY)
-    
+
     try:
         cmd_to_str = run_model(minizinc_path.get(), solver_config,
                                model_file, dzn_file_path.get())
+        try:
+            csv_text = extract_csv_text(cmd_to_str)
+        except Exception as e:
+            logger.info(f"Problem when extracting layout from the solution: {str(e)}")
+            tk.messagebox.showinfo("Information", str(e))
+            return
         label_csv_loaded.config(text='Done...')
 
-        path = tk.filedialog.asksaveasfilename(
-            defaultextension=".csv", filetypes=FileTypes.CSV_FILES)
+        file_format = ask_layout_export_format(root)
 
-        print(f"Saving results to: {path}")
-        logger.info(f"User selected CSV save path: {path}")
-
-        if path is None or path == '':
-            # User cancelled - restore original state
-            label_csv_loaded.config(text=original_label_text)
-            logger.info("User cancelled CSV save - operation aborted")
+        if file_format == None:
+            logger.info(
+                f"User closed the file format selection window without selecting a format - operation aborted")
             return
 
-        # Use context manager for file writing
-        try:
-            with open(path, 'w') as csv_file:
-                csv_text = extract_csv_text(cmd_to_str)
-                csv_file.writelines(csv_text)
-            
-            print(f"CSV saved successfully: {path}")
-            logger.info(f"CSV file saved: {path}, {len(csv_text)} lines")
-        except (IOError, OSError) as e:
-            logger.error(f"CSV write failed: {path}, error: {e}")
-            tk.messagebox.showerror("Error", f"Failed to write CSV file: {str(e)}")
-            label_csv_loaded.config(text='Error writing file')
-            return
+        logger.info(f"User selected the following layout file format: {file_format}")
+
+        if file_format == FileTypes.PHARMBIO:
+            path = write_csv_file(csv_text)
+            if path == -1:
+                # User cancelled - restore original state
+                label_csv_loaded.config(text=original_label_text)
+                return
+            elif path == -2:
+                label_csv_loaded.config(text='Error writing file')
+                return
+
+        elif file_format == FileTypes.PLATER:
+            conversion_input = CSVConversionRequest(csv_lines=csv_text,
+                                                    rows=num_rows.get(),
+                                                    cols=num_cols.get()
+                                                    )
+            paths = []
+            for csv_text in convert_pharmbio_to_plater(conversion_input):
+                path = write_csv_file(csv_text.split())
+                if path == -1:
+                    # User cancelled - restore original state
+                    label_csv_loaded.config(text=original_label_text)
+                    return
+                elif path == -2:
+                    label_csv_loaded.config(text='Error writing file')
+                    return
+                paths.append(path)
+            path = paths[0]
 
         update_csv_path(path)
         csv_file_path.set(path)
-        
+
     except (RuntimeError, FileNotFoundError) as e:
         label_csv_loaded.config(text='Error occurred')
         logger.error(f"MiniZinc execution failed: {e}")
@@ -230,8 +250,9 @@ def visualize() -> None:
                 model_name = Messages.MODEL_PLAID
             figure_name_template = csv_file_path.get()[:-4] + '_' + model_name + '_'
             print(f"Opening visualization for: {csv_file_path.get()}")
-            logger.info(f"Starting visualization: CSV={csv_file_path.get()}, template={figure_name_template}")
-            
+            logger.info(
+                f"Starting visualization: CSV={csv_file_path.get()}, template={figure_name_template}")
+
             wv.visualize(csv_file_path.get(), figure_name_template,
                          num_rows.get(), num_cols.get(), control_names.get())
         except Exception as e:
@@ -332,14 +353,15 @@ label_dzn_loaded.grid(row=1, column=0, columnspan=2, sticky="w")
 # Frame 2: CSV file generation/loading
 frame_csv: ttk.LabelFrame = ttk.LabelFrame(root, text=Messages.FRAME_TITLE_CSV)
 frame_csv.pack(expand=True, fill="both", padx=UI.FRAME_PADDING, pady=UI.FRAME_PADDING)
-button_run_minizinc: ttk.Button = ttk.Button(frame_csv, width=UI.BUTTON_WIDTH_STANDARD, state=tk.DISABLED, text=Messages.BUTTON_RUN_MODEL)
+button_run_minizinc: ttk.Button = ttk.Button(
+    frame_csv, width=UI.BUTTON_WIDTH_STANDARD, state=tk.DISABLED, text=Messages.BUTTON_RUN_MODEL)
 button_load_csv: ttk.Button = ttk.Button(
     frame_csv, width=UI.BUTTON_WIDTH_STANDARD, state=tk.NORMAL, text=Messages.BUTTON_LOAD_CSV)
 label_csv_loaded: tk.Label = tk.Label(frame_csv, text=Messages.NO_CSV_LOADED)
 radio_plaid: ttk.Radiobutton = ttk.Radiobutton(frame_csv, text=Messages.MODEL_PLAID,
-                              value=UI.SELECT_PLAID, variable=use_compd_flag)
+                                               value=UI.SELECT_PLAID, variable=use_compd_flag)
 radio_compd: ttk.Radiobutton = ttk.Radiobutton(frame_csv, text=Messages.MODEL_OTHER,
-                              value=UI.SELECT_OTHER, variable=use_compd_flag)
+                                               value=UI.SELECT_OTHER, variable=use_compd_flag)
 
 frame_csv.columnconfigure(0, weight=UI.GRID_WEIGHT)
 frame_csv.columnconfigure(1, weight=UI.GRID_WEIGHT)
@@ -352,16 +374,18 @@ label_csv_loaded.grid(row=2, column=0, columnspan=2, sticky="w")
 
 # Frame 3: Visualization
 frame_matplotlib: ttk.LabelFrame = ttk.LabelFrame(root, text=Messages.FRAME_TITLE_VIZ)
-frame_matplotlib.pack(expand=True, fill="both", padx=UI.FRAME_PADDING, pady=UI.FRAME_PADDING)
+frame_matplotlib.pack(expand=True, fill="both",
+                      padx=UI.FRAME_PADDING, pady=UI.FRAME_PADDING)
 label_rows: tk.Label = tk.Label(frame_matplotlib, text=Messages.LABEL_ROWS)
 entry_rows: ttk.Entry = ttk.Entry(frame_matplotlib, textvariable=num_rows, width=UI.ENTRY_WIDTH_NUMERIC,
-                       validate='all', validatecommand=(vcmd, '%P'))
+                                  validate='all', validatecommand=(vcmd, '%P'))
 label_cols: tk.Label = tk.Label(frame_matplotlib, text=Messages.LABEL_COLS)
 entry_cols: ttk.Entry = ttk.Entry(frame_matplotlib, textvariable=num_cols, width=UI.ENTRY_WIDTH_NUMERIC,
-                       validate='all', validatecommand=(vcmd, '%P'))
+                                  validate='all', validatecommand=(vcmd, '%P'))
 button_visualize: ttk.Button = ttk.Button(
     frame_matplotlib, width=UI.BUTTON_WIDTH_STANDARD, state=tk.NORMAL, text=Messages.BUTTON_VISUALIZE)
-button_reset_all: ttk.Button = ttk.Button(frame_matplotlib, width=UI.BUTTON_WIDTH_STANDARD, text=Messages.BUTTON_RESET)
+button_reset_all: ttk.Button = ttk.Button(
+    frame_matplotlib, width=UI.BUTTON_WIDTH_STANDARD, text=Messages.BUTTON_RESET)
 
 frame_matplotlib.columnconfigure(0, weight=UI.GRID_WEIGHT)
 frame_matplotlib.columnconfigure(1, weight=UI.GRID_WEIGHT)

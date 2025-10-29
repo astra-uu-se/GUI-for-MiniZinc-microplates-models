@@ -166,7 +166,15 @@ class FileTypes:
     """File type constants for dialogs."""
     DZN_FILES = [('dzn files', '*.dzn')]
     CSV_FILES = [('csv files', '*.csv')]
+    PHARMBIO_LABEL = 'CSV (PharmBio)'
+    PLATER_LABEL = 'CSV (PLATER)'
+    PHARMBIO = 'pharmbio'
+    PLATER = 'plater'
 
+class PlaterFormat:
+    """String constants for saving and reading Plater files."""
+    DRUGS_LABEL = "Drug"
+    CONCENTRATIONS_LABEL = "Concentration"
 
 class Validation:
     """Input validation constants."""

@@ -13,9 +13,9 @@
 # limitations under the License.
 #
 #
-# Description:  Tooltip widget
+# Description:  Numeric input validation callback
 #
-# Authors: squareRoot17
+# Authors: Ramiz GINDULLIN (ramiz.gindullin@it.uu.se)
 # Version: 1.0
 # Last Revision: October 2025
 #
