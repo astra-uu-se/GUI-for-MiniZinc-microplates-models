@@ -66,6 +66,7 @@ recent_csv = []
 # ------------------------------
 
 def load_recents():
+    """Load the list of recent files"""
     global recent_dzn, recent_csv
     def _load_json(p):
         if os.path.exists(p):
@@ -82,6 +83,7 @@ def load_recents():
 
 
 def save_recents():
+    """Save the list of recent files"""
     try:
         with open(RECENT_DZN_PATH, "w", encoding="utf-8") as f:
             json.dump(recent_dzn[:MAX_RECENT], f, indent=1, ensure_ascii=False)
@@ -93,6 +95,7 @@ def save_recents():
 
 
 def add_to_recent(path, lst, is_dzn):
+    """Add to the list of recent files, depending on the file type"""
     path = os.path.abspath(path)
     if path in lst:
         lst.remove(path)
@@ -105,6 +108,7 @@ def add_to_recent(path, lst, is_dzn):
 
 
 def open_recent_file(path, is_dzn):
+    """Load the selected recent file"""
     if not os.path.exists(path):
         messagebox.showerror("File Not Found",
                              f"Could not find file:\n{path}\n\nThe entry will be removed from menu.")
@@ -129,6 +133,7 @@ def open_recent_file(path, is_dzn):
 
 
 def refresh_recent_dzn_menu():
+    """Refresh the list of recent DZN files"""
     menu_recent_dzn.delete(0, tk.END)
     if not recent_dzn:
         menu_recent_dzn.add_command(label="(No recent DZN)", state=tk.DISABLED)
@@ -143,6 +148,7 @@ def refresh_recent_dzn_menu():
 
 
 def refresh_recent_csv_menu():
+    """Refresh the list of recent CSV files"""
     menu_recent_csv.delete(0, tk.END)
     if not recent_csv:
         menu_recent_csv.add_command(label="(No recent CSV)", state=tk.DISABLED)
@@ -157,6 +163,7 @@ def refresh_recent_csv_menu():
 
 
 def clear_recent(is_dzn):
+    """Clear the list of recent files"""
     if messagebox.askyesno("Clear Recent Files", "Remove all entries from this menu?"):
         if is_dzn: recent_dzn.clear(); save_recents(); refresh_recent_dzn_menu()
         else: recent_csv.clear(); save_recents(); refresh_recent_csv_menu()
