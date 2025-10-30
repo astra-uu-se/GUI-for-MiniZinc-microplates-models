@@ -44,6 +44,10 @@ from ui.ui_validators import numeric_entry_callback
 from ui import window_dzn as wd
 from ui import window_visuals as wv
 
+# ------------------------------
+# CONFIGURATION
+# ------------------------------
+
 # Configure logging for main application
 logging.basicConfig(
     level=logging.INFO,
@@ -55,6 +59,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Log application startup
+logger.info("MPLACE application starting up")
+
+
+# Configuration required for Windows machines
+if sys.platform.startswith(System.WINDOWS_PLATFORM_PREFIX):
+    os.system(System.WINDOWS_CODEPAGE_UTF8)  # Change code page to UTF-8
+
+# Recent files menu configuration
 MAX_RECENT = 7
 RECENT_DZN_PATH = os.path.join(os.path.expanduser("~"), ".mplace_recent_dzn.json")
 RECENT_CSV_PATH = os.path.join(os.path.expanduser("~"), ".mplace_recent_csv.json")
@@ -65,110 +78,6 @@ recent_csv = []
 # Functions
 # ------------------------------
 
-def load_recents():
-    """Load the list of recent files"""
-    global recent_dzn, recent_csv
-    def _load_json(p):
-        if os.path.exists(p):
-            try:
-                with open(p, "r", encoding="utf-8") as f:
-                    x = json.load(f)
-                    if isinstance(x, list):
-                        return [str(xx) for xx in x if os.path.exists(xx)]
-            except Exception:
-                pass
-        return []
-    recent_dzn[:] = _load_json(RECENT_DZN_PATH)[:MAX_RECENT]
-    recent_csv[:] = _load_json(RECENT_CSV_PATH)[:MAX_RECENT]
-
-
-def save_recents():
-    """Save the list of recent files"""
-    try:
-        with open(RECENT_DZN_PATH, "w", encoding="utf-8") as f:
-            json.dump(recent_dzn[:MAX_RECENT], f, indent=1, ensure_ascii=False)
-    except Exception: pass
-    try:
-        with open(RECENT_CSV_PATH, "w", encoding="utf-8") as f:
-            json.dump(recent_csv[:MAX_RECENT], f, indent=1, ensure_ascii=False)
-    except Exception: pass
-
-
-def add_to_recent(path, lst, is_dzn):
-    """Add to the list of recent files, depending on the file type"""
-    path = os.path.abspath(path)
-    if path in lst:
-        lst.remove(path)
-    lst.insert(0, path)
-    while len(lst) > MAX_RECENT:
-        lst.pop()
-    save_recents()
-    if is_dzn: refresh_recent_dzn_menu()
-    else: refresh_recent_csv_menu()
-
-
-def open_recent_file(path, is_dzn):
-    """Load the selected recent file"""
-    if not os.path.exists(path):
-        messagebox.showerror("File Not Found",
-                             f"Could not find file:\n{path}\n\nThe entry will be removed from menu.")
-        if is_dzn:
-            if path in recent_dzn: recent_dzn.remove(path); save_recents(); refresh_recent_dzn_menu()
-        else:
-            if path in recent_csv: recent_csv.remove(path); save_recents(); refresh_recent_csv_menu()
-        return
-    if is_dzn:
-        dzn_file_path.set(path)
-        path_show(path, label_dzn_loaded)
-        try:
-            cols, rows, controls_names_text = scan_dzn(path)
-            num_cols.set(cols); num_rows.set(rows); control_names.set(controls_names_text)
-        except Exception as e: pass
-        button_run_minizinc.config(state=tk.NORMAL)
-        add_to_recent(path,recent_dzn,True)
-    else:
-        csv_file_path.set(path)
-        update_csv_path(path)
-        add_to_recent(path,recent_csv,False)
-
-
-def refresh_recent_dzn_menu():
-    """Refresh the list of recent DZN files"""
-    menu_recent_dzn.delete(0, tk.END)
-    if not recent_dzn:
-        menu_recent_dzn.add_command(label="(No recent DZN)", state=tk.DISABLED)
-        return
-    for fpath in recent_dzn:
-        display = fpath
-        if len(display) > 80:
-            display = "..." + display[-80:]
-        menu_recent_dzn.add_command(label=display, command=lambda p=fpath: open_recent_file(p,True))
-    menu_recent_dzn.add_separator()
-    menu_recent_dzn.add_command(label="Clear List",command=lambda: clear_recent(True))
-
-
-def refresh_recent_csv_menu():
-    """Refresh the list of recent CSV files"""
-    menu_recent_csv.delete(0, tk.END)
-    if not recent_csv:
-        menu_recent_csv.add_command(label="(No recent CSV)", state=tk.DISABLED)
-        return
-    for fpath in recent_csv:
-        display = fpath
-        if len(display) > 80:
-            display = "..." + display[-80:]
-        menu_recent_csv.add_command(label=display, command=lambda p=fpath: open_recent_file(p,False))
-    menu_recent_csv.add_separator()
-    menu_recent_csv.add_command(label="Clear List",command=lambda: clear_recent(False))
-
-
-def clear_recent(is_dzn):
-    """Clear the list of recent files"""
-    if messagebox.askyesno("Clear Recent Files", "Remove all entries from this menu?"):
-        if is_dzn: recent_dzn.clear(); save_recents(); refresh_recent_dzn_menu()
-        else: recent_csv.clear(); save_recents(); refresh_recent_csv_menu()
-
-
 def update_csv_path(path: str) -> None:
     """Update CSV file path and display it in the UI.
 
@@ -176,7 +85,6 @@ def update_csv_path(path: str) -> None:
         path: Path to CSV file
     """
     path_show(path, label_csv_loaded)
-    add_to_recent(path, recent_csv, False)
     csv_file_path.set(path)
     logger.info(f"CSV file path updated: {path}")
 
@@ -242,7 +150,6 @@ def load_dzn() -> None:
     if path != '':
         try:
             path_show(path, label_dzn_loaded)
-            add_to_recent(path, recent_dzn, True)
             dzn_file_path.set(path)
 
             cols, rows, controls_names_text = scan_dzn(path)
@@ -254,6 +161,7 @@ def load_dzn() -> None:
             logger.info(f"DZN file loaded successfully: {path}")
 
             button_run_minizinc.config(state=tk.NORMAL)
+            add_to_recent(path, recent_dzn, True)
         except (FileNotFoundError, ValueError) as e:
             logger.error(f"DZN loading failed: {path}, error: {e}")
             tk.messagebox.showerror("Error", f"Failed to load DZN file: {str(e)}")
@@ -267,6 +175,7 @@ def load_csv() -> None:
     )
     if path != '':
         try:
+            add_to_recent(path, recent_csv, False)
             update_csv_path(path)
             # Count lines for user info
             with open(path, 'r') as f:
@@ -442,11 +351,11 @@ def run_minizinc() -> None:
 
         # Update UI with primary saved file (first one for multi-file saves)
         if saved_paths:
+            # Add all saved files to recent list (good UX for multi-file PLATER exports)
             for path_file in saved_paths:
                 add_to_recent(path_file, recent_csv, False)
-            primary_path = saved_paths[0]
-            update_csv_path(primary_path)
-            csv_file_path.set(primary_path)
+            update_csv_path(saved_paths[0])
+            csv_file_path.set(saved_paths[0])
             
             # Show completion message
             if len(saved_paths) == 1:
@@ -503,11 +412,117 @@ def on_close() -> None:
         root.destroy()
 
 
-if sys.platform.startswith(System.WINDOWS_PLATFORM_PREFIX):
-    os.system(System.WINDOWS_CODEPAGE_UTF8)  # Change code page to UTF-8
+def load_recents():
+    """Load the list of recent files
+    (generated by Perplexity AI)"""
+    global recent_dzn, recent_csv
+    def _load_json(p):
+        if os.path.exists(p):
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    x = json.load(f)
+                    if isinstance(x, list):
+                        return [str(xx) for xx in x if os.path.exists(xx)]
+            except Exception:
+                pass
+        return []
+    recent_dzn[:] = _load_json(RECENT_DZN_PATH)[:MAX_RECENT]
+    recent_csv[:] = _load_json(RECENT_CSV_PATH)[:MAX_RECENT]
 
-# Log application startup
-logger.info("MPLACE application starting up")
+
+def save_recents():
+    """Save the list of recent files
+    (generated by Perplexity AI)"""
+    try:
+        with open(RECENT_DZN_PATH, "w", encoding="utf-8") as f:
+            json.dump(recent_dzn[:MAX_RECENT], f, indent=1, ensure_ascii=False)
+    except Exception: pass
+    try:
+        with open(RECENT_CSV_PATH, "w", encoding="utf-8") as f:
+            json.dump(recent_csv[:MAX_RECENT], f, indent=1, ensure_ascii=False)
+    except Exception: pass
+
+
+def add_to_recent(path, lst, is_dzn):
+    """Add to the list of recent files, depending on the file type
+    (generated by Perplexity AI)"""
+    path = os.path.abspath(path)
+    if path in lst:
+        lst.remove(path)
+    lst.insert(0, path)
+    while len(lst) > MAX_RECENT:
+        lst.pop()
+    save_recents()
+    if is_dzn: refresh_recent_dzn_menu()
+    else: refresh_recent_csv_menu()
+
+
+def open_recent_file(path, is_dzn):
+    """Load the selected recent file
+    (generated by Perplexity AI)"""
+    if not os.path.exists(path):
+        messagebox.showerror("File Not Found",
+                             f"Could not find file:\n{path}\n\nThe entry will be removed from menu.")
+        if is_dzn:
+            if path in recent_dzn: recent_dzn.remove(path); save_recents(); refresh_recent_dzn_menu()
+        else:
+            if path in recent_csv: recent_csv.remove(path); save_recents(); refresh_recent_csv_menu()
+        return
+    if is_dzn:
+        dzn_file_path.set(path)
+        path_show(path, label_dzn_loaded)
+        try:
+            cols, rows, controls_names_text = scan_dzn(path)
+            num_cols.set(cols); num_rows.set(rows); control_names.set(controls_names_text)
+        except Exception as e:
+            logger.debug(f"Failed to parse DZN metadata from recent file {path}: {e}")
+        button_run_minizinc.config(state=tk.NORMAL)
+        add_to_recent(path,recent_dzn,True)
+    else:
+        csv_file_path.set(path)
+        update_csv_path(path)
+        add_to_recent(path,recent_csv,False)
+
+
+def refresh_recent_dzn_menu():
+    """Refresh the list of recent DZN files
+    (generated by Perplexity AI)"""
+    menu_recent_dzn.delete(0, tk.END)
+    if not recent_dzn:
+        menu_recent_dzn.add_command(label="(No recent DZN)", state=tk.DISABLED)
+        return
+    for fpath in recent_dzn:
+        display = fpath
+        if len(display) > 80:
+            display = "..." + display[-80:]
+        menu_recent_dzn.add_command(label=display, command=lambda p=fpath: open_recent_file(p,True))
+    menu_recent_dzn.add_separator()
+    menu_recent_dzn.add_command(label="Clear List",command=lambda: clear_recent(True))
+
+
+def refresh_recent_csv_menu():
+    """Refresh the list of recent CSV files
+    (generated by Perplexity AI)"""
+    menu_recent_csv.delete(0, tk.END)
+    if not recent_csv:
+        menu_recent_csv.add_command(label="(No recent CSV)", state=tk.DISABLED)
+        return
+    for fpath in recent_csv:
+        display = fpath
+        if len(display) > 80:
+            display = "..." + display[-80:]
+        menu_recent_csv.add_command(label=display, command=lambda p=fpath: open_recent_file(p,False))
+    menu_recent_csv.add_separator()
+    menu_recent_csv.add_command(label="Clear List",command=lambda: clear_recent(False))
+
+
+def clear_recent(is_dzn):
+    """Clear the list of recent files
+    (generated by Perplexity AI)"""
+    if messagebox.askyesno("Clear Recent Files", "Remove all entries from this menu?"):
+        if is_dzn: recent_dzn.clear(); save_recents(); refresh_recent_dzn_menu()
+        else: recent_csv.clear(); save_recents(); refresh_recent_csv_menu()
+
 
 # ------------------------------
 # Global variables
