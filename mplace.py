@@ -359,11 +359,11 @@ def run_minizinc() -> None:
             
             # Show completion message
             if len(saved_paths) == 1:
-                print(f"Layout exported successfully: {os.path.basename(primary_path)}")
+                print(f"Layout exported successfully: {os.path.basename(saved_paths[0])}")
             else:
-                print(f"Layout exported: {len(saved_paths)} files, primary: {os.path.basename(primary_path)}")
+                print(f"Layout exported: {len(saved_paths)} files, primary: {os.path.basename(saved_paths[0])}")
                 
-            logger.info(f"Export completed: {len(saved_paths)} file(s), primary path set to: {primary_path}")
+            logger.info(f"Export completed: {len(saved_paths)} file(s), primary path set to: {os.path.basename(saved_paths[0])}")
 
     except (RuntimeError, FileNotFoundError) as e:
         label_csv_loaded.config(text='MiniZinc execution failed')
