@@ -11,6 +11,12 @@ MPLACE is a desktop app with a graphical interface for generating and visualizin
   - run a ready-made model (PLAID),
   - visualize results without coding.
 
+<!-- Main window -->
+<p align="center">
+  <img src="images/main.png" alt="MPLACE main window with DZN/CSV workflow" width="400">
+</p>
+<p align="center"><em>Main window: generate/load DZN, run model, load/visualize CSV.</em></p>
+
 ## Quick Start (about 5–10 minutes)
 
 Follow these steps in order:
@@ -105,6 +111,12 @@ compd_mpc_path = "mzn/compd_default.mpc"
 
 *Tip: You can prepare the compound/control lists with the included Excel file `tools/Convert the compounds and controls.xlsx`.*
 
+<!-- DZN file generation window -->
+<p align="center">
+  <img src="images/gendzn.png" alt="MPLACE DZN File generation window" width="500">
+</p>
+<p align="center"><em>Main window: generate/load DZN, run model, load/visualize CSV.</em></p>
+
 **2) Run the model to produce a layout (*.csv)**
 - Click "Run a model".
 - Choose PLAID (default) or Other.
@@ -122,6 +134,11 @@ compd_mpc_path = "mzn/compd_default.mpc"
   - Plate view tabs (one per layout)
   - A panel showing materials and concentration scales
 - Figures are automatically saved as PNG files next to your CSV.
+
+<!-- Visualization -->
+<p align="center">
+  <img src="images/Visualize.png" alt="Plate visualization with materials (squares) and concentration (circles) legend" width="760">
+</p>
 
 **What the app produces**
 - CSV: layout with wells and materials
