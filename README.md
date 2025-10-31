@@ -159,7 +159,7 @@ df <- read_plate("layout_plater.csv") # single plate
 dfs <- read_plates(c("plate1.csv","plate2.csv"), plate_names=c("P1","P2")) # multiple plates
 ```
 
-If you're unsure which format to use, choose **PharmBio** to stay within the MPLACE workflow. Use **PLATER** when your downstream analysis or data sharing requires the PLATER ecosystem.
+MPLACE can load and visualize both formats. Use **PLATER** when your downstream analysis or data sharing requires the PLATER ecosystem. Otherwise, you can use the **PharmBio** format if you want to store information about multiple layouts into one file, as it is more convenient.
 
 
 ## Input Tips: Compounds/Controls Format
